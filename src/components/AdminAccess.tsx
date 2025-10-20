@@ -65,7 +65,7 @@ export default function AdminAccess({ children }: AdminAccessProps) {
             </Button>
           </div>
           <div className="text-xs text-muted-foreground text-center">
-            <p>Demo keys: <code className="bg-muted px-1 rounded">admin123</code> or <code className="bg-muted px-1 rounded">morningfeast</code></p>
+            {/* <p>Demo keys: <code className="bg-muted px-1 rounded">admin123</code> or <code className="bg-muted px-1 rounded">morningfeast</code></p> */}
           </div>
         </div>
       </DialogContent>
