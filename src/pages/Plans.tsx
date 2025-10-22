@@ -140,7 +140,7 @@ export default function Plans() {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {plan.frequency === 'monthly' && (
-                <Badge className="absolute top-4 right-4 bg-gradient-to-r from-primary to-secondary text-white z-10 animate-pulse shadow-lg">
+                <Badge className="absolute top-4 right-4 bg-green-800 text-white z-10 animate-pulse shadow-lg">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   Most Popular
                 </Badge>
@@ -247,7 +247,7 @@ export default function Plans() {
                 <Button
                   className={`w-full h-12 text-lg font-semibold transition-all duration-300 ${
                     plan.frequency === 'monthly'
-                      ? 'bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transform hover:scale-105'
+                      ? 'bg-orange-500 hover:from-primary/90 hover:to-seconedary/90 shadow-lg hover:shadow-xl transform hover:scale-105'
                       : 'hover:bg-primary hover:text-white border-2 border-primary hover:border-primary'
                   }`}
                   onClick={() => handleSelectPlan(plan)}

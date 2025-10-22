@@ -332,9 +332,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {filteredItems.map((item, index) => (
-              <Card key={item.id} className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}>
+              <Card key={item.id} className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up h-full flex flex-col ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}>
                 {/* Gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
 
@@ -372,10 +372,10 @@ export default function Home() {
                       )}
                     </div>
                   </div>
-                  <CardDescription className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">{item.description}</CardDescription>
+                  <CardDescription className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300 line-clamp-4">{item.description}</CardDescription>
                 </CardHeader>
 
-                <CardContent className="relative z-20">
+                <CardContent className="relative z-20 flex flex-col justify-between flex-1">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-2xl font-bold text-orange-600 group-hover:text-orange-700 transition-colors duration-300">₹{item.price}</span>
                     <div className="flex items-center space-x-1 text-yellow-500 group-hover:text-yellow-600 transition-colors duration-300">
