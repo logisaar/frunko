@@ -125,22 +125,22 @@ export default function Menu() {
       {/* Promo Banners */}
       <div className="px-4 overflow-x-auto flex gap-4 pb-4 hide-scrollbar">
         <img
-          src="/public/items/veggie salad.png"
+          src="/public/Breverages/veggie salad.png"
           alt="Daily Fresh Bowls"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
         <img
-          src="/public/items/mix_fruitboul_with-curd.png"
+          src="/public/Breverages/mix_fruitboul_with-curd.png"
           alt="Hydrate & Energize"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
         <img
-          src="/public/items/chocolate oats.png"
+          src="/public/Breverages/chocolate oats.png"
           alt="Hostel Combos Save More"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
         <img
-          src="/public/items/mix_fruit_bowl.png"
+          src="/public/Breverages/mix_fruit_bowl.png"
           alt="Hostel Combos Save More"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
