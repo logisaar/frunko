@@ -98,7 +98,7 @@ export default function Menu() {
       {/* Logo Header */}
       <div className="p-6 flex flex-col items-center justify-center">
         <img
-          src="/public/favicon.ico"
+          src="/src/assets/logo.png"
           alt="Frunko"
           className="w-24 h-24 mb-2"
         />
@@ -125,22 +125,22 @@ export default function Menu() {
       {/* Promo Banners */}
       <div className="px-4 overflow-x-auto flex gap-4 pb-4 hide-scrollbar">
         <img
-          src="/public/Breverages/veggie salad.png"
+          src="/src/assets/veggie salad.png"
           alt="Daily Fresh Bowls"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
         <img
-          src="/public/Breverages/mix_fruitboul_with-curd.png"
+          src="/src/assets/mix_fruitboul_with-curd.png"
           alt="Hydrate & Energize"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
         <img
-          src="/public/Breverages/chocolate oats.png"
+          src="/src/assets/chocolate oats.png"
           alt="Hostel Combos Save More"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
         <img
-          src="/public/Breverages/mix_fruit_bowl.png"
+          src="/src/assets/mix_fruit_bowl.png"
           alt="Hostel Combos Save More"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />

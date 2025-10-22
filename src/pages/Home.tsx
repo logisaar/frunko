@@ -160,7 +160,7 @@ export default function Home() {
           <div className="w-full md:w-1/2 flex justify-center animate-bounce-in">
             <div className="relative">
               <img
-                src="/public/Breverages/mix-fruit-bowl.jpg"
+                src="/src/assets/mix-fruit-bowl.jpg"
                 alt="Fruit Bowl"
                 className="w-[350px] md:w-[420px] rounded-full shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 hover:rotate-3"
               />
