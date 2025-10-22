@@ -160,9 +160,9 @@ export default function Home() {
           <div className="w-full md:w-1/2 flex justify-center animate-bounce-in">
             <div className="relative">
               <img
-                src="/assets/mix-fruit-bowl.jpg"
-                alt="Fruit Bowl"
-                className="w-[350px] md:w-[420px] rounded-full shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 hover:rotate-3"
+                src="/assets/hero-frunko.jpg"
+                alt="Frunko - Pay for Your Health"
+                className="w-[350px] md:w-[420px] rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 hover:rotate-3"
               />
               <div className="absolute -top-4 -right-4 w-8 h-8 bg-[#F7934C] rounded-full animate-ping"></div>
               <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-[#F5E0C8] rounded-full animate-pulse"></div>
