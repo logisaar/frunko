@@ -262,14 +262,14 @@ export default function Plans() {
       </div>
 
       {/* Additional Info */}
-      <div className="p-4">
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 max-w-4xl mx-auto">
+        <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 border-primary/30 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 animate-fade-in">
+          <CardContent className="p-6">
+            <div className="flex items-start space-x-4">
+              <Shield className="h-8 w-8 text-primary mt-0.5 flex-shrink-0 animate-pulse" />
               <div>
-                <h3 className="font-semibold mb-1">Money Back Guarantee</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-bold text-lg mb-2 text-primary">Money Back Guarantee</h3>
+                <p className="text-base text-muted-foreground">
                   Not satisfied with your first meal? Get a full refund within 24 hours.
                 </p>
               </div>
@@ -277,13 +277,13 @@ export default function Plans() {
           </CardContent>
         </Card>
 
-        <Card className="bg-secondary/5 border-secondary/20 mt-4">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <Heart className="h-5 w-5 text-secondary mt-0.5 flex-shrink-0" />
+        <Card className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-primary/10 border-secondary/30 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <CardContent className="p-6">
+            <div className="flex items-start space-x-4">
+              <Heart className="h-8 w-8 text-secondary mt-0.5 flex-shrink-0 animate-pulse" />
               <div>
-                <h3 className="font-semibold mb-1">Health First</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-bold text-lg mb-2 text-secondary">Health First</h3>
+                <p className="text-base text-muted-foreground">
                   All meals are prepared with fresh, locally sourced ingredients and follow strict hygiene standards.
                 </p>
               </div>

@@ -334,7 +334,8 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {filteredItems.map((item, index) => (
-              <Card key={item.id} className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up h-full flex flex-col ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}>
+              <div key={item.id}>
+                <Card className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up h-full flex flex-col ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}>
                 {/* Gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
 
@@ -398,6 +399,7 @@ export default function Home() {
                   </Button>
                 </CardContent>
               </Card>
+              </div>
             ))}
           </div>
 
