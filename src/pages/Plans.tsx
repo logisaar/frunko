@@ -56,8 +56,25 @@ export default function Plans() {
     }
   };
 
-  const handleSelectPlan = (plan: Plan) => {
-    navigate(`/payment?planId=${plan.id}&name=${encodeURIComponent(plan.name)}&price=${plan.price}&frequency=${plan.frequency}`);
+  const handleSelectPlan = async (plan: Plan) => {
+    // Check if user is logged in
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error('Please sign in to subscribe');
+      navigate('/auth');
+      return;
+    }
+
+    // Navigate to plan selection pages based on frequency
+    if (plan.frequency === 'weekly') {
+      navigate('/weekly-plan-selection', { state: { plan } });
+    } else if (plan.frequency === 'monthly') {
+      navigate('/monthly-plan-selection', { state: { plan } });
+    } else {
+      // For daily plans, go directly to payment
+      navigate(`/payment?planId=${plan.id}&name=${encodeURIComponent(plan.name)}&price=${plan.price}&frequency=${plan.frequency}`);
+    }
   };
 
   const getFrequencyIcon = (frequency: string) => {
