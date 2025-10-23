@@ -22,7 +22,7 @@ export default function Menu() {
 
   const categories: (FoodCategory | "all")[] = [
     "all",
-    "Nutri-shakes",
+    "beverages",
     "frunko_bowls",
     "desserts",
   ];
@@ -97,13 +97,11 @@ export default function Menu() {
     <div className="min-h-screen bg-[#FFF7EE] pb-20">
       {/* Logo Header */}
       <div className="p-6 flex flex-col items-center justify-center">
-     <img
-  src="/assets/image.png"
-  alt="Frunko"
-  className="w-40 h-19 mb-2 rounded-[30px]"
-/>
-
-
+        <img
+          src="/assets/logo.png"
+          alt="Frunko"
+          className="w-24 h-24 mb-2"
+        />
         <h1 className="text-2xl font-bold text-[#3B1F0A]">FRuNKO</h1>
         <p className="text-sm text-[#6E4E29]">Pay for your health</p>
       </div>

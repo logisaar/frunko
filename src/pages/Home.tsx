@@ -160,9 +160,9 @@ export default function Home() {
           <div className="w-full md:w-1/2 flex justify-center animate-bounce-in">
             <div className="relative">
               <img
-                src="/assets/mix-fruit-bowl.jpg"
-                alt="Fruit Bowl"
-                className="w-[350px] md:w-[420px] rounded-full shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 hover:rotate-3"
+                src="/assets/hero-frunko.jpg"
+                alt="Frunko - Pay for Your Health"
+                className="w-[350px] md:w-[420px] rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 hover:rotate-3"
               />
               <div className="absolute -top-4 -right-4 w-8 h-8 bg-[#F7934C] rounded-full animate-ping"></div>
               <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-[#F5E0C8] rounded-full animate-pulse"></div>
@@ -334,8 +334,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {filteredItems.map((item, index) => (
-              <div key={item.id}>
-                <Card className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up h-full flex flex-col ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}>
+              <Card key={item.id} className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up h-full flex flex-col ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}>
                 {/* Gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
 
@@ -399,7 +398,6 @@ export default function Home() {
                   </Button>
                 </CardContent>
               </Card>
-              </div>
             ))}
           </div>
 

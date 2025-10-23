@@ -10,7 +10,7 @@ export const seedSampleData = async () => {
         name: 'Masala Dosa',
         description: 'Crispy rice crepe filled with spiced potatoes, served with coconut chutney and sambar',
         price: 120,
-        category: 'breakfast' as const,
+        category: 'frunko_bowls' as const,
         is_veg: true,
         is_available: true,
         images: ['https://images.unsplash.com/photo-1551782450-17144efb9c50?w=400']
@@ -64,7 +64,7 @@ export const seedSampleData = async () => {
         name: 'Idli Sambar',
         description: 'Soft steamed rice cakes served with lentil curry',
         price: 80,
-        category: 'breakfast' as const,
+        category: 'frunko_bowls' as const,
         is_veg: true,
         is_available: true,
         images: ['https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400']
