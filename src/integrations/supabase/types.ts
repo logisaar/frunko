@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      coupon_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean | null
+          max_discount: number | null
+          min_order_value: number | null
+          updated_at: string
+          usage_limit: number | null
+          used_count: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          is_active?: boolean | null
+          max_discount?: number | null
+          min_order_value?: number | null
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean | null
+          max_discount?: number | null
+          min_order_value?: number | null
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      coupon_usage: {
+        Row: {
+          coupon_id: string
+          discount_amount: number
+          id: string
+          order_id: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          discount_amount: number
+          id?: string
+          order_id?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items: {
         Row: {
           category: Database["public"]["Enums"]["food_category"]
@@ -98,8 +191,10 @@ export type Database = {
       orders: {
         Row: {
           completed_at: string | null
+          coupon_code: string | null
           created_at: string
           delivery_address: string
+          discount_amount: number | null
           expected_delivery_time: string | null
           id: string
           qr_code: string | null
@@ -110,8 +205,10 @@ export type Database = {
         }
         Insert: {
           completed_at?: string | null
+          coupon_code?: string | null
           created_at?: string
           delivery_address: string
+          discount_amount?: number | null
           expected_delivery_time?: string | null
           id?: string
           qr_code?: string | null
@@ -122,8 +219,10 @@ export type Database = {
         }
         Update: {
           completed_at?: string | null
+          coupon_code?: string | null
           created_at?: string
           delivery_address?: string
+          discount_amount?: number | null
           expected_delivery_time?: string | null
           id?: string
           qr_code?: string | null
@@ -375,7 +474,7 @@ export type Database = {
         Row: {
           event: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           timestamp: string
           user_agent: string | null
           user_id: string
@@ -383,7 +482,7 @@ export type Database = {
         Insert: {
           event: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           timestamp?: string
           user_agent?: string | null
           user_id: string
@@ -391,7 +490,7 @@ export type Database = {
         Update: {
           event?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           timestamp?: string
           user_agent?: string | null
           user_id?: string
@@ -410,14 +509,11 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       food_category:
-        | "Nutri-shakes"
+        | "breakfast"
         | "lunch"
         | "dinner"
         | "snacks"
@@ -568,7 +664,7 @@ export const Constants = {
   public: {
     Enums: {
       food_category: [
-        "Nutri-shakes",
+        "breakfast",
         "lunch",
         "dinner",
         "snacks",

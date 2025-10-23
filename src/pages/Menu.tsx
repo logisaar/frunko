@@ -22,7 +22,7 @@ export default function Menu() {
 
   const categories: (FoodCategory | "all")[] = [
     "all",
-    "Nutri-shakes",
+    "beverages",
     "frunko_bowls",
     "desserts",
   ];

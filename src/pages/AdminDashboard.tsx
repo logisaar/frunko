@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import CouponManagement from '@/components/CouponManagement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -31,7 +32,9 @@ import {
   AlertCircle,
   Save,
   X,
-  MessageSquare
+  MessageSquare,
+  Tag,
+  Percent
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
@@ -41,6 +44,7 @@ type Order = Database['public']['Tables']['orders']['Row'];
 type User = Database['public']['Tables']['profiles']['Row'];
 type Plan = Database['public']['Tables']['plans']['Row'];
 type Review = Database['public']['Tables']['reviews']['Row'];
+type Coupon = Database['public']['Tables']['coupon_codes']['Row'];
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -49,6 +53,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -61,12 +66,15 @@ export default function AdminDashboard() {
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showPlanDialog, setShowPlanDialog] = useState(false);
   const [showUserDialog, setShowUserDialog] = useState(false);
+  const [showCouponDialog, setShowCouponDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
 
   // Item form
   const [itemForm, setItemForm] = useState({
@@ -94,6 +102,18 @@ export default function AdminDashboard() {
     email: '',
     phone: '',
     address: '',
+    is_active: true
+  });
+
+  // Coupon form
+  const [couponForm, setCouponForm] = useState({
+    code: '',
+    discount_type: 'percentage' as 'percentage' | 'fixed',
+    discount_value: '',
+    min_order_value: '',
+    max_discount: '',
+    usage_limit: '',
+    valid_until: '',
     is_active: true
   });
 
@@ -178,6 +198,15 @@ export default function AdminDashboard() {
       }));
 
       setReviews(enrichedReviews);
+
+      // Load coupons
+      const { data: couponsData, error: couponsError } = await supabase
+        .from('coupon_codes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (couponsError) throw couponsError;
+      setCoupons(couponsData || []);
 
       // Calculate stats from all data
       const totalRevenue = (ordersData || []).reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
@@ -398,6 +427,68 @@ export default function AdminDashboard() {
     }
   };
 
+  // Coupon CRUD operations
+  const handleSaveCoupon = async () => {
+    try {
+      if (!couponForm.code || !couponForm.discount_value) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+
+      const couponData = {
+        code: couponForm.code.toUpperCase(),
+        discount_type: couponForm.discount_type,
+        discount_value: parseFloat(couponForm.discount_value),
+        min_order_value: couponForm.min_order_value ? parseFloat(couponForm.min_order_value) : 0,
+        max_discount: couponForm.max_discount ? parseFloat(couponForm.max_discount) : null,
+        usage_limit: couponForm.usage_limit ? parseInt(couponForm.usage_limit) : null,
+        valid_until: couponForm.valid_until || null,
+        is_active: couponForm.is_active,
+        created_by: user!.id
+      };
+
+      if (editingCoupon) {
+        const { error } = await supabase
+          .from('coupon_codes')
+          .update(couponData)
+          .eq('id', editingCoupon.id);
+        if (error) throw error;
+        toast.success('Coupon updated successfully');
+      } else {
+        const { error } = await supabase
+          .from('coupon_codes')
+          .insert([couponData]);
+        if (error) throw error;
+        toast.success('Coupon created successfully');
+      }
+
+      setShowCouponDialog(false);
+      setEditingCoupon(null);
+      resetCouponForm();
+      loadDashboardData();
+    } catch (error: any) {
+      toast.error(editingCoupon ? 'Failed to update coupon' : 'Failed to create coupon');
+      console.error('Error saving coupon:', error);
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId: string) => {
+    try {
+      const { error } = await supabase
+        .from('coupon_codes')
+        .delete()
+        .eq('id', couponId);
+      
+      if (error) throw error;
+      toast.success('Coupon deleted successfully');
+      setCouponToDelete(null);
+      loadDashboardData();
+    } catch (error: any) {
+      toast.error('Failed to delete coupon');
+      console.error('Error deleting coupon:', error);
+    }
+  };
+
   const resetItemForm = () => {
     setItemForm({
       name: '',
@@ -426,6 +517,19 @@ export default function AdminDashboard() {
       email: '',
       phone: '',
       address: '',
+      is_active: true
+    });
+  };
+
+  const resetCouponForm = () => {
+    setCouponForm({
+      code: '',
+      discount_type: 'percentage',
+      discount_value: '',
+      min_order_value: '',
+      max_discount: '',
+      usage_limit: '',
+      valid_until: '',
       is_active: true
     });
   };
@@ -570,13 +674,14 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="items">Items</TabsTrigger>
             <TabsTrigger value="plans">Plans</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="coupons">Coupons</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}

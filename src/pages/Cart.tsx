@@ -15,7 +15,9 @@ import {
   ShoppingCart,
   MapPin,
   CreditCard,
-  ChefHat
+  ChefHat,
+  Tag,
+  X
 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
@@ -25,6 +27,9 @@ export default function Cart() {
   const { user } = useAuth();
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
@@ -33,6 +38,79 @@ export default function Cart() {
 
   const handleRemoveItem = (itemId: string) => {
     removeFromCart(itemId);
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    
+    const subtotal = getTotalPrice();
+    let discount = 0;
+
+    if (appliedCoupon.discount_type === 'percentage') {
+      discount = (subtotal * appliedCoupon.discount_value) / 100;
+      if (appliedCoupon.max_discount) {
+        discount = Math.min(discount, appliedCoupon.max_discount);
+      }
+    } else {
+      discount = appliedCoupon.discount_value;
+    }
+
+    return Math.min(discount, subtotal);
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+
+    setCouponLoading(true);
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupon_codes')
+        .select('*')
+        .eq('code', couponCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .single();
+
+      if (error || !coupon) {
+        toast.error('Invalid or expired coupon code');
+        return;
+      }
+
+      // Check if coupon is still valid
+      const now = new Date();
+      if (coupon.valid_until && new Date(coupon.valid_until) < now) {
+        toast.error('This coupon has expired');
+        return;
+      }
+
+      // Check minimum order value
+      if (coupon.min_order_value && getTotalPrice() < coupon.min_order_value) {
+        toast.error(`Minimum order value of ₹${coupon.min_order_value} required`);
+        return;
+      }
+
+      // Check usage limit
+      if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+        toast.error('This coupon has reached its usage limit');
+        return;
+      }
+
+      setAppliedCoupon(coupon);
+      toast.success('Coupon applied successfully!');
+    } catch (error) {
+      console.error('Error applying coupon:', error);
+      toast.error('Failed to apply coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    toast.info('Coupon removed');
   };
 
   const handleCheckout = async () => {
@@ -47,7 +125,10 @@ export default function Cart() {
     }
 
     try {
-      const totalAmount = getTotalPrice() + Math.round(getTotalPrice() * 0.18);
+      const discount = calculateDiscount();
+      const subtotal = getTotalPrice();
+      const tax = Math.round((subtotal - discount) * 0.18);
+      const totalAmount = subtotal - discount + tax;
       
       // Create order
       const { data: orderData, error: orderError } = await supabase
@@ -56,7 +137,9 @@ export default function Cart() {
           user_id: user!.id,
           total_amount: totalAmount,
           delivery_address: deliveryAddress,
-          status: 'pending'
+          status: 'pending',
+          coupon_code: appliedCoupon?.code || null,
+          discount_amount: discount
         }])
         .select()
         .single();
@@ -76,6 +159,22 @@ export default function Cart() {
         .insert(orderItems);
 
       if (itemsError) throw itemsError;
+
+      // Record coupon usage if applied
+      if (appliedCoupon) {
+        await supabase.from('coupon_usage').insert({
+          coupon_id: appliedCoupon.id,
+          user_id: user!.id,
+          order_id: orderData.id,
+          discount_amount: discount
+        });
+
+        // Update coupon used count
+        await supabase
+          .from('coupon_codes')
+          .update({ used_count: appliedCoupon.used_count + 1 })
+          .eq('id', appliedCoupon.id);
+      }
 
       toast.success('Order placed successfully!');
       clearCart();
@@ -227,6 +326,50 @@ export default function Cart() {
           </CardContent>
         </Card>
 
+        {/* Coupon Code Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Tag className="h-5 w-5" />
+              Have a Coupon?
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div>
+                  <p className="font-semibold text-green-700">{appliedCoupon.code}</p>
+                  <p className="text-sm text-green-600">
+                    You saved ₹{calculateDiscount()}!
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemoveCoupon}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter coupon code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  className="uppercase"
+                />
+                <Button
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading || !couponCode.trim()}
+                >
+                  Apply
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Order Summary */}
         <Card className="mb-6">
           <CardHeader>
@@ -237,18 +380,24 @@ export default function Cart() {
               <span>Items ({getTotalItems()})</span>
               <span>₹{getTotalPrice()}</span>
             </div>
+            {appliedCoupon && (
+              <div className="flex justify-between text-green-600">
+                <span>Discount</span>
+                <span>-₹{calculateDiscount()}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>Delivery Fee</span>
               <span className="text-green-600">Free</span>
             </div>
             <div className="flex justify-between">
-              <span>Tax</span>
-              <span>₹{Math.round(getTotalPrice() * 0.18)}</span>
+              <span>Tax (18%)</span>
+              <span>₹{Math.round((getTotalPrice() - calculateDiscount()) * 0.18)}</span>
             </div>
             <div className="border-t pt-3">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total</span>
-                <span>₹{getTotalPrice() + Math.round(getTotalPrice() * 0.18)}</span>
+                <span>₹{getTotalPrice() - calculateDiscount() + Math.round((getTotalPrice() - calculateDiscount()) * 0.18)}</span>
               </div>
             </div>
           </CardContent>
@@ -261,7 +410,7 @@ export default function Cart() {
           onClick={handleCheckout}
         >
           <CreditCard className="h-5 w-5 mr-2" />
-          Place Order - ₹{getTotalPrice() + Math.round(getTotalPrice() * 0.18)}
+          Place Order - ₹{getTotalPrice() - calculateDiscount() + Math.round((getTotalPrice() - calculateDiscount()) * 0.18)}
         </Button>
       </div>
     </div>

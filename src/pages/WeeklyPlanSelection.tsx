@@ -164,16 +164,17 @@ export default function WeeklyPlanSelection() {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Tabs defaultValue="Monday" className="w-full">
-              <TabsList className="grid w-full grid-cols-7 mb-6">
+              <TabsList className="grid w-full grid-cols-7 gap-1 mb-6 h-auto p-1">
                 {DAYS.map(day => (
                   <TabsTrigger 
                     key={day} 
                     value={day}
-                    className="relative"
+                    className="relative text-xs md:text-sm py-2 px-1 md:px-3"
                   >
-                    {day.substring(0, 3)}
+                    <span className="hidden sm:inline">{day.substring(0, 3)}</span>
+                    <span className="sm:hidden">{day.substring(0, 1)}</span>
                     {skippedDays.has(day) && (
-                      <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 bg-red-500" />
+                      <Badge className="absolute -top-1 -right-1 h-3 w-3 md:h-4 md:w-4 p-0 bg-red-500" />
                     )}
                   </TabsTrigger>
                 ))}
@@ -181,23 +182,26 @@ export default function WeeklyPlanSelection() {
 
               {DAYS.map(day => (
                 <TabsContent key={day} value={day} className="space-y-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">{day}</h2>
-                    <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <h2 className="text-xl md:text-2xl font-bold">{day}</h2>
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => copyToAllDays(day)}
+                        className="flex-1 sm:flex-none text-xs md:text-sm"
                       >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy to All Days
+                        <Copy className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                        <span className="hidden sm:inline">Copy to All Days</span>
+                        <span className="sm:hidden">Copy All</span>
                       </Button>
                       <Button
                         variant={skippedDays.has(day) ? "default" : "outline"}
                         size="sm"
                         onClick={() => toggleSkipDay(day)}
+                        className="flex-1 sm:flex-none text-xs md:text-sm"
                       >
-                        <SkipForward className="h-4 w-4 mr-2" />
+                        <SkipForward className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         {skippedDays.has(day) ? 'Activate' : 'Skip Day'}
                       </Button>
                     </div>
@@ -274,14 +278,14 @@ export default function WeeklyPlanSelection() {
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="sticky top-24 shadow-xl">
+            <Card className="lg:sticky lg:top-24 shadow-xl">
               <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
                   Weekly Summary
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
+              <CardContent className="pt-4 md:pt-6 space-y-3 md:space-y-4">
                 <div className="space-y-3">
                   {DAYS.map(day => {
                     const dayTotal = getDayTotal(day);
