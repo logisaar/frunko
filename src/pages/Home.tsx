@@ -339,11 +339,15 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
 
                 <div className="aspect-video bg-gradient-to-br from-orange-100 to-orange-200 rounded-t-lg flex items-center justify-center overflow-hidden relative">
-                  {item.images && item.images.length > 0 ? (
+                  {item.images && item.images.length > 0 && item.images[0] ? (
                     <img
                       src={item.images[0]}
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <ChefHat className="h-12 w-12 text-orange-400" />

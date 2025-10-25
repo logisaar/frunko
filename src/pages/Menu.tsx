@@ -156,11 +156,19 @@ export default function Menu() {
               className="flex flex-col items-center text-center flex-shrink-0"
             >
               <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center overflow-hidden">
-                {item.images?.[0] ? (
+                {item.images && item.images.length > 0 && item.images[0] ? (
                   <img
                     src={item.images[0]}
                     alt={item.name}
                     className="object-cover w-full h-full"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<svg class="text-[#6E4E29] h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/></svg>';
+                      }
+                    }}
                   />
                 ) : (
                   <ChefHat className="text-[#6E4E29] h-6 w-6" />
@@ -186,12 +194,20 @@ export default function Menu() {
               key={item.id}
               className="w-40 flex-shrink-0 rounded-xl overflow-hidden bg-white shadow"
             >
-              <div className="h-32 overflow-hidden">
-                <img
-                  src={item.images?.[0] || "/images/juice.jpg"}
-                  alt={item.name}
-                  className="object-cover w-full h-full"
-                />
+              <div className="h-32 overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
+                {item.images && item.images.length > 0 && item.images[0] ? (
+                  <img
+                    src={item.images[0]}
+                    alt={item.name}
+                    className="object-cover w-full h-full"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <ChefHat className="h-12 w-12 text-orange-400" />
+                )}
               </div>
               <div className="p-3">
                 <p className="font-semibold text-sm text-[#3B1F0A] line-clamp-1">
@@ -222,11 +238,21 @@ export default function Menu() {
               key={item.id}
               className="w-36 flex-shrink-0 rounded-xl bg-white shadow"
             >
-              <img
-                src={item.images?.[0] || "/images/bowl.jpg"}
-                alt={item.name}
-                className="w-full h-28 object-cover rounded-t-xl"
-              />
+              <div className="w-full h-28 bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center rounded-t-xl overflow-hidden">
+                {item.images && item.images.length > 0 && item.images[0] ? (
+                  <img
+                    src={item.images[0]}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <ChefHat className="h-12 w-12 text-orange-400" />
+                )}
+              </div>
               <div className="p-2">
                 <p className="font-semibold text-sm text-[#3B1F0A] line-clamp-1">
                   {item.name}

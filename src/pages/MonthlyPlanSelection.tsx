@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Minus, Copy, ShoppingCart, Leaf, TrendingUp } from 'lucide-react';
+import { Plus, Minus, Copy, ShoppingCart, Leaf, TrendingUp, ChefHat } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MenuItem {
@@ -177,32 +177,32 @@ export default function MonthlyPlanSelection() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-20 pb-24">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-4xl font-bold text-gray-900">Monthly Menu Selection</h1>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-16 md:pt-20 pb-24 md:pb-8">
+      <div className="container mx-auto px-3 md:px-4">
+        <div className="mb-4 md:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mb-2">
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900">Monthly Menu Selection</h1>
             <Badge className="bg-green-800 text-white">
               <TrendingUp className="h-3 w-3 mr-1" />
               Save ₹{calculateSavings()}
             </Badge>
           </div>
-          <p className="text-gray-600">Plan: {plan?.name} - ₹{plan?.price}/month</p>
+          <p className="text-sm md:text-base text-gray-600">Plan: {plan?.name} - ₹{plan?.price}/month</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Select Week</CardTitle>
               </CardHeader>
               <CardContent>
                 <Tabs value={selectedWeek} onValueChange={setSelectedWeek}>
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
                     {WEEKS.map(week => (
-                      <TabsTrigger key={week} value={week}>
-                        {week}
-                        <Badge variant="outline" className="ml-2">
+                      <TabsTrigger key={week} value={week} className="text-xs sm:text-sm flex-col sm:flex-row gap-1 py-2">
+                        <span>{week}</span>
+                        <Badge variant="outline" className="text-[10px] sm:text-xs">
                           ₹{getWeekTotal(week)}
                         </Badge>
                       </TabsTrigger>
@@ -210,81 +210,98 @@ export default function MonthlyPlanSelection() {
                   </TabsList>
 
                   {WEEKS.map(week => (
-                    <TabsContent key={week} value={week} className="space-y-4 mt-6">
-                      <div className="flex gap-2 mb-4">
+                    <TabsContent key={week} value={week} className="space-y-3 md:space-y-4 mt-4 md:mt-6">
+                      <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3 md:mb-4">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => useWeeklyTemplate(week)}
+                          className="text-xs md:text-sm h-auto py-1.5 md:py-2"
                         >
-                          <Copy className="h-4 w-4 mr-2" />
-                          Use as Template for All Weeks
+                          <Copy className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                          <span className="hidden sm:inline">Use as Template for All Weeks</span>
+                          <span className="sm:hidden">Template</span>
                         </Button>
                       </div>
 
                       <Tabs value={selectedDay} onValueChange={setSelectedDay}>
-                        <TabsList className="grid w-full grid-cols-7">
+                        <TabsList className="grid w-full grid-cols-7 gap-0.5 md:gap-1 p-0.5 md:p-1">
                           {DAYS.map(day => (
-                            <TabsTrigger key={day} value={day}>
-                              {day.substring(0, 3)}
+                            <TabsTrigger key={day} value={day} className="text-[10px] sm:text-xs md:text-sm py-1.5 md:py-2 px-0.5 sm:px-1 md:px-3">
+                              <span className="hidden xs:inline">{day.substring(0, 3)}</span>
+                              <span className="xs:hidden">{day.substring(0, 1)}</span>
                             </TabsTrigger>
                           ))}
                         </TabsList>
 
                         {DAYS.map(day => (
-                          <TabsContent key={day} value={day} className="space-y-4 mt-6">
-                            <div className="flex justify-between items-center mb-4">
-                              <h3 className="text-xl font-bold">{week} - {day}</h3>
+                          <TabsContent key={day} value={day} className="space-y-3 md:space-y-4 mt-4 md:mt-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 md:mb-4 gap-2">
+                              <h3 className="text-base md:text-lg lg:text-xl font-bold">{week} - {day}</h3>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => copyDayToWeek(day, week)}
+                                className="text-xs md:text-sm h-auto py-1.5 md:py-2 w-full sm:w-auto"
                               >
-                                <Copy className="h-4 w-4 mr-2" />
-                                Copy to All Days
+                                <Copy className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                                <span className="hidden sm:inline">Copy to All Days</span>
+                                <span className="sm:hidden">Copy All</span>
                               </Button>
                             </div>
 
-                            <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                               {menuItems.map(item => {
                                 const quantity = monthSelection[week][day][item.id] || 0;
                                 return (
                                   <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                                    <div className="relative h-48">
-                                      <img
-                                        src={item.images[0] || '/placeholder.svg'}
-                                        alt={item.name}
-                                        className="w-full h-full object-cover"
-                                      />
+                                    <div className="relative h-36 sm:h-40 md:h-48 bg-gradient-to-br from-orange-100 to-orange-200">
+                                      {item.images && item.images.length > 0 && item.images[0] ? (
+                                        <img
+                                          src={item.images[0]}
+                                          alt={item.name}
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                          }}
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                          <ChefHat className="h-16 w-16 text-orange-400" />
+                                        </div>
+                                      )}
                                       {item.is_veg && (
                                         <Badge className="absolute top-2 right-2 bg-green-600">
                                           <Leaf className="h-3 w-3" />
                                         </Badge>
                                       )}
                                     </div>
-                                    <CardHeader>
-                                      <CardTitle className="text-lg">{item.name}</CardTitle>
-                                      <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                                    <CardHeader className="p-3 md:p-6">
+                                      <CardTitle className="text-base md:text-lg">{item.name}</CardTitle>
+                                      <CardDescription className="text-xs md:text-sm line-clamp-2">{item.description}</CardDescription>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
                                       <div className="flex items-center justify-between">
-                                        <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
-                                        <div className="flex items-center gap-2">
+                                        <span className="text-lg md:text-xl font-bold text-orange-600">₹{item.price}</span>
+                                        <div className="flex items-center gap-1.5 md:gap-2">
                                           <Button
                                             size="sm"
                                             variant="outline"
                                             onClick={() => updateQuantity(week, day, item.id, -1)}
                                             disabled={quantity === 0}
+                                            className="h-8 w-8 md:h-9 md:w-9 p-0"
                                           >
-                                            <Minus className="h-4 w-4" />
+                                            <Minus className="h-3 w-3 md:h-4 md:w-4" />
                                           </Button>
-                                          <span className="w-8 text-center font-semibold">{quantity}</span>
+                                          <span className="w-6 md:w-8 text-center text-sm md:text-base font-semibold">{quantity}</span>
                                           <Button
                                             size="sm"
                                             variant="default"
                                             onClick={() => updateQuantity(week, day, item.id, 1)}
+                                            className="h-8 w-8 md:h-9 md:w-9 p-0"
                                           >
-                                            <Plus className="h-4 w-4" />
+                                            <Plus className="h-3 w-3 md:h-4 md:w-4" />
                                           </Button>
                                         </div>
                                       </div>
@@ -304,30 +321,30 @@ export default function MonthlyPlanSelection() {
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="sticky top-24 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                <CardTitle className="flex items-center gap-2">
+            <Card className="lg:sticky lg:top-24 shadow-xl mb-4 lg:mb-0">
+              <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-base lg:text-lg">
                   <ShoppingCart className="h-5 w-5" />
                   Monthly Summary
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div className="space-y-3">
+              <CardContent className="p-3 md:p-6 pt-3 md:pt-6 space-y-2 md:space-y-3 lg:space-y-4">
+                <div className="space-y-2 md:space-y-3">
                   {WEEKS.map(week => {
                     const weekTotal = getWeekTotal(week);
                     return (
-                      <div key={week} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="font-semibold">{week}</p>
-                          <span className="font-bold text-orange-600">₹{weekTotal}</span>
+                      <div key={week} className="p-2 md:p-3 bg-gray-50 rounded-lg">
+                        <div className="flex justify-between items-center mb-1.5 md:mb-2">
+                          <p className="font-semibold text-xs md:text-sm">{week}</p>
+                          <span className="font-bold text-xs md:text-sm text-orange-600">₹{weekTotal}</span>
                         </div>
-                        <div className="grid grid-cols-7 gap-1 text-xs">
+                        <div className="grid grid-cols-7 gap-0.5 md:gap-1 text-[10px] md:text-xs">
                           {DAYS.map(day => {
                             const dayTotal = getDayTotal(week, day);
                             return (
                               <div key={day} className="text-center">
-                                <div className="font-medium">{day[0]}</div>
-                                <div className="text-gray-600">₹{dayTotal}</div>
+                                <div className="font-medium text-[10px] md:text-xs">{day[0]}</div>
+                                <div className="text-gray-600 text-[9px] md:text-[10px]">₹{dayTotal}</div>
                               </div>
                             );
                           })}
@@ -337,27 +354,27 @@ export default function MonthlyPlanSelection() {
                   })}
                 </div>
 
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
+                <div className="border-t pt-2 md:pt-4 space-y-1.5 md:space-y-2">
+                  <div className="flex justify-between text-xs md:text-sm">
                     <span>Total Items:</span>
                     <span className="font-semibold">{getTotalItems()}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-green-600">
+                  <div className="flex justify-between text-xs md:text-sm text-green-600">
                     <span>Monthly Savings:</span>
                     <span className="font-semibold">₹{calculateSavings()}</span>
                   </div>
                 </div>
 
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-semibold">Monthly Total:</span>
-                    <span className="text-2xl font-bold text-orange-600">
+                <div className="border-t pt-3 md:pt-4">
+                  <div className="flex justify-between items-center mb-3 md:mb-4">
+                    <span className="text-base md:text-lg font-semibold">Monthly Total:</span>
+                    <span className="text-xl md:text-2xl font-bold text-orange-600">
                       ₹{getMonthlyTotal()}
                     </span>
                   </div>
 
                   <Button
-                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-orange-500 to-orange-600"
+                    className="w-full h-10 md:h-12 text-sm md:text-base lg:text-lg font-semibold bg-gradient-to-r from-orange-500 to-orange-600"
                     onClick={handleCheckout}
                     disabled={getTotalItems() === 0}
                   >

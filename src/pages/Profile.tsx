@@ -25,7 +25,10 @@ import {
   ChefHat,
   Truck,
   LocateFixed,
-  Plus
+  Plus,
+  Calendar,
+  Crown,
+  DollarSign
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
@@ -41,6 +44,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -56,6 +60,7 @@ export default function Profile() {
   const [ordersDialogOpen, setOrdersDialogOpen] = useState(false);
   const [giftDialogOpen, setGiftDialogOpen] = useState(false);
   const [addressesDialogOpen, setAddressesDialogOpen] = useState(false);
+  const [subscriptionsDialogOpen, setSubscriptionsDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState({
     item_id: '',
     rating: 5,
@@ -126,6 +131,19 @@ export default function Profile() {
 
       if (reviewsError) throw reviewsError;
       setReviews(reviewsData || []);
+
+      // Load subscriptions with plan details
+      const { data: subscriptionsData, error: subscriptionsError } = await supabase
+        .from('subscriptions')
+        .select(`
+          *,
+          plans (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (subscriptionsError) throw subscriptionsError;
+      setSubscriptions(subscriptionsData || []);
 
     } catch (error: any) {
       console.error('Error loading user data:', error);
@@ -301,9 +319,17 @@ export default function Profile() {
 
           {/* Action list */}
           <div className="mt-6 space-y-3">
+            <a href="#" onClick={(e) => { e.preventDefault(); setSubscriptionsDialogOpen(true); }} className="flex items-center justify-between bg-card rounded-full p-4 shadow-sm hover:shadow-warm transition">
+              <div className="flex items-center space-x-3">
+                <Crown className="h-5 w-5 text-primary" />
+                <span className="font-medium">My Subscriptions</span>
+              </div>
+              <span className="text-muted-foreground text-sm">{'>'}</span>
+            </a>
+
             <a href="#" onClick={(e) => { e.preventDefault(); setOrdersDialogOpen(true); }} className="flex items-center justify-between bg-card rounded-full p-4 shadow-sm hover:shadow-warm transition">
               <div className="flex items-center space-x-3">
-                <User className="h-5 w-5 text-primary" />
+                <Package className="h-5 w-5 text-primary" />
                 <span className="font-medium">Your Orders</span>
               </div>
               <span className="text-muted-foreground text-sm">{'>'}</span>
@@ -460,6 +486,84 @@ export default function Profile() {
                 {coupon && (
                   <div className="text-sm text-muted-foreground">Applied: {coupon.code} · {coupon.percent}% off</div>
                 )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Subscriptions Dialog */}
+          <Dialog open={subscriptionsDialogOpen} onOpenChange={setSubscriptionsDialogOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>My Subscriptions</DialogTitle>
+                <DialogDescription>View and manage your active subscription plans</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                {subscriptions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Crown className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">No active subscriptions</p>
+                    <Button className="mt-4" onClick={() => { setSubscriptionsDialogOpen(false); window.location.href = '/plans'; }}>Browse Plans</Button>
+                  </div>
+                ) : (
+                  subscriptions.map((sub) => (
+                    <div key={sub.id} className="border rounded-lg p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="font-bold text-lg">{sub.plans?.name || 'Unknown Plan'}</h3>
+                          <p className="text-sm text-muted-foreground">{sub.plans?.description || ''}</p>
+                        </div>
+                        <Badge variant={sub.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                          {sub.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="h-4 w-4 text-primary" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Price</div>
+                            <div className="font-semibold">₹{sub.plans?.price}/{sub.plans?.frequency}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-primary" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Frequency</div>
+                            <div className="font-semibold capitalize">{sub.plans?.frequency}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-primary" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Start Date</div>
+                            <div className="font-semibold">{new Date(sub.start_date).toLocaleDateString()}</div>
+                          </div>
+                        </div>
+                        {sub.end_date && (
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4 text-destructive" />
+                            <div>
+                              <div className="text-xs text-muted-foreground">End Date</div>
+                              <div className="font-semibold">{new Date(sub.end_date).toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {sub.status === 'active' && (
+                        <div className="mt-3 pt-3 border-t">
+                          <p className="text-xs text-muted-foreground mb-2">Next billing cycle</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Auto-renews on {new Date(new Date(sub.start_date).setMonth(new Date(sub.start_date).getMonth() + 1)).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={() => setSubscriptionsDialogOpen(false)}>Close</Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>

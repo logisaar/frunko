@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Minus, Copy, SkipForward, ShoppingCart, Leaf, Check } from 'lucide-react';
+import { Plus, Minus, Copy, SkipForward, ShoppingCart, Leaf, Check, ChefHat } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MenuItem {
@@ -154,44 +154,44 @@ export default function WeeklyPlanSelection() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-20 pb-24">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Weekly Menu Selection</h1>
-          <p className="text-gray-600">Plan: {plan?.name} - ₹{plan?.price}/week</p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-16 md:pt-20 pb-24 md:pb-8">
+      <div className="container mx-auto px-3 md:px-4">
+        <div className="mb-4 md:mb-8">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">Weekly Menu Selection</h1>
+          <p className="text-sm md:text-base text-gray-600">Plan: {plan?.name} - ₹{plan?.price}/week</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
           <div className="lg:col-span-2">
             <Tabs defaultValue="Monday" className="w-full">
-              <TabsList className="grid w-full grid-cols-7 gap-1 mb-6 h-auto p-1">
+              <TabsList className="grid w-full grid-cols-7 gap-0.5 md:gap-1 mb-4 md:mb-6 h-auto p-0.5 md:p-1">
                 {DAYS.map(day => (
                   <TabsTrigger 
                     key={day} 
                     value={day}
-                    className="relative text-xs md:text-sm py-2 px-1 md:px-3"
+                    className="relative text-[10px] sm:text-xs md:text-sm py-1.5 md:py-2 px-0.5 sm:px-1 md:px-3"
                   >
-                    <span className="hidden sm:inline">{day.substring(0, 3)}</span>
-                    <span className="sm:hidden">{day.substring(0, 1)}</span>
+                    <span className="hidden xs:inline sm:inline">{day.substring(0, 3)}</span>
+                    <span className="xs:hidden">{day.substring(0, 1)}</span>
                     {skippedDays.has(day) && (
-                      <Badge className="absolute -top-1 -right-1 h-3 w-3 md:h-4 md:w-4 p-0 bg-red-500" />
+                      <Badge className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 p-0 bg-red-500" />
                     )}
                   </TabsTrigger>
                 ))}
               </TabsList>
 
               {DAYS.map(day => (
-                <TabsContent key={day} value={day} className="space-y-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                    <h2 className="text-xl md:text-2xl font-bold">{day}</h2>
-                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <TabsContent key={day} value={day} className="space-y-3 md:space-y-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 md:mb-4 gap-2 md:gap-3">
+                    <h2 className="text-lg md:text-xl lg:text-2xl font-bold">{day}</h2>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2 w-full sm:w-auto">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => copyToAllDays(day)}
-                        className="flex-1 sm:flex-none text-xs md:text-sm"
+                        className="flex-1 sm:flex-none text-[10px] sm:text-xs md:text-sm py-1.5 md:py-2 h-auto"
                       >
-                        <Copy className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                        <Copy className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                         <span className="hidden sm:inline">Copy to All Days</span>
                         <span className="sm:hidden">Copy All</span>
                       </Button>
@@ -199,59 +199,71 @@ export default function WeeklyPlanSelection() {
                         variant={skippedDays.has(day) ? "default" : "outline"}
                         size="sm"
                         onClick={() => toggleSkipDay(day)}
-                        className="flex-1 sm:flex-none text-xs md:text-sm"
+                        className="flex-1 sm:flex-none text-[10px] sm:text-xs md:text-sm py-1.5 md:py-2 h-auto"
                       >
-                        <SkipForward className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                        <SkipForward className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                         {skippedDays.has(day) ? 'Activate' : 'Skip Day'}
                       </Button>
                     </div>
                   </div>
 
                   {skippedDays.has(day) ? (
-                    <Card className="p-12 text-center">
-                      <p className="text-gray-500">This day is skipped</p>
+                    <Card className="p-8 md:p-12 text-center">
+                      <p className="text-sm md:text-base text-gray-500">This day is skipped</p>
                     </Card>
                   ) : (
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                       {menuItems.map(item => {
                         const quantity = weekSelection[day][item.id] || 0;
                         return (
                           <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                            <div className="relative h-48">
-                              <img
-                                src={item.images[0] || '/placeholder.svg'}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
+                            <div className="relative h-36 sm:h-40 md:h-48 bg-gradient-to-br from-orange-100 to-orange-200">
+                              {item.images && item.images.length > 0 && item.images[0] ? (
+                                <img
+                                  src={item.images[0]}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <ChefHat className="h-16 w-16 text-orange-400" />
+                                </div>
+                              )}
                               {item.is_veg && (
                                 <Badge className="absolute top-2 right-2 bg-green-600">
                                   <Leaf className="h-3 w-3" />
                                 </Badge>
                               )}
                             </div>
-                            <CardHeader>
-                              <CardTitle className="text-lg">{item.name}</CardTitle>
-                              <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                            <CardHeader className="p-3 md:p-6">
+                              <CardTitle className="text-base md:text-lg">{item.name}</CardTitle>
+                              <CardDescription className="text-xs md:text-sm line-clamp-2">{item.description}</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
                               <div className="flex items-center justify-between">
-                                <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
-                                <div className="flex items-center gap-2">
+                                <span className="text-lg md:text-xl font-bold text-orange-600">₹{item.price}</span>
+                                <div className="flex items-center gap-1.5 md:gap-2">
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => updateQuantity(day, item.id, -1)}
                                     disabled={quantity === 0}
+                                    className="h-8 w-8 md:h-9 md:w-9 p-0"
                                   >
-                                    <Minus className="h-4 w-4" />
+                                    <Minus className="h-3 w-3 md:h-4 md:w-4" />
                                   </Button>
-                                  <span className="w-8 text-center font-semibold">{quantity}</span>
+                                  <span className="w-6 md:w-8 text-center text-sm md:text-base font-semibold">{quantity}</span>
                                   <Button
                                     size="sm"
                                     variant="default"
                                     onClick={() => updateQuantity(day, item.id, 1)}
+                                    className="h-8 w-8 md:h-9 md:w-9 p-0"
                                   >
-                                    <Plus className="h-4 w-4" />
+                                    <Plus className="h-3 w-3 md:h-4 md:w-4" />
                                   </Button>
                                 </div>
                               </div>
@@ -278,33 +290,33 @@ export default function WeeklyPlanSelection() {
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="lg:sticky lg:top-24 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <Card className="lg:sticky lg:top-24 shadow-xl mb-4 lg:mb-0">
+              <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-base lg:text-lg">
                   <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
                   Weekly Summary
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-4 md:pt-6 space-y-3 md:space-y-4">
-                <div className="space-y-3">
+              <CardContent className="p-3 md:p-6 pt-3 md:pt-6 space-y-2 md:space-y-3 lg:space-y-4">
+                <div className="space-y-2 md:space-y-3">
                   {DAYS.map(day => {
                     const dayTotal = getDayTotal(day);
                     const dayItemCount = Object.values(weekSelection[day]).reduce((a, b) => a + b, 0);
                     const isSkipped = skippedDays.has(day);
                     
                     return (
-                      <div key={day} className={`flex justify-between items-center p-2 rounded ${isSkipped ? 'opacity-50 line-through' : ''}`}>
+                      <div key={day} className={`flex justify-between items-center p-1.5 md:p-2 rounded text-sm md:text-base ${isSkipped ? 'opacity-50 line-through' : ''}`}>
                         <div>
-                          <p className="font-medium">{day}</p>
-                          <p className="text-xs text-gray-500">{dayItemCount} items</p>
+                          <p className="font-medium text-xs md:text-sm">{day}</p>
+                          <p className="text-[10px] md:text-xs text-gray-500">{dayItemCount} items</p>
                         </div>
-                        <span className="font-semibold">₹{dayTotal}</span>
+                        <span className="font-semibold text-xs md:text-sm">₹{dayTotal}</span>
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="border-t pt-4 space-y-2">
+                <div className="border-t pt-2 md:pt-4 space-y-1.5 md:space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Total Items:</span>
                     <span className="font-semibold">{getTotalItems()}</span>
@@ -315,16 +327,16 @@ export default function WeeklyPlanSelection() {
                   </div>
                 </div>
 
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-semibold">Weekly Total:</span>
-                    <span className="text-2xl font-bold text-orange-600">
+                <div className="border-t pt-3 md:pt-4">
+                  <div className="flex justify-between items-center mb-3 md:mb-4">
+                    <span className="text-base md:text-lg font-semibold">Weekly Total:</span>
+                    <span className="text-xl md:text-2xl font-bold text-orange-600">
                       ₹{getWeeklyTotal()}
                     </span>
                   </div>
 
                   <Button
-                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-orange-500 to-orange-600"
+                    className="w-full h-10 md:h-12 text-sm md:text-base lg:text-lg font-semibold bg-gradient-to-r from-orange-500 to-orange-600"
                     onClick={handleCheckout}
                     disabled={getTotalItems() === 0}
                   >
