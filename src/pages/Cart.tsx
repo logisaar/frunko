@@ -178,7 +178,12 @@ export default function Cart() {
 
       toast.success('Order placed successfully!');
       clearCart();
-      navigate('/profile');
+      navigate('/payment', { 
+        state: { 
+          orderId: orderData.id,
+          totalAmount: totalAmount 
+        } 
+      });
     } catch (error: any) {
       console.error('Error creating order:', error);
       toast.error('Failed to place order. Please try again.');

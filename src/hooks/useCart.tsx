@@ -22,7 +22,7 @@ interface CartContextType {
   getTotalPrice: () => number;
   getTotalItems: () => number;
   loading: boolean;
-  applyCoupon: (code: string) => boolean;
+  applyCoupon: (code: string) => Promise<boolean>;
   removeCoupon: () => void;
   coupon: { code?: string; percent: number } | null;
 }
@@ -50,8 +50,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Save cart to localStorage whenever items change
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(items));
-    try { localStorage.setItem('cart_coupon', JSON.stringify(coupon)); } catch {}
   }, [items]);
+
+  // Save coupon separately
+  useEffect(() => {
+    try { 
+      if (coupon) {
+        localStorage.setItem('cart_coupon', JSON.stringify(coupon)); 
+      } else {
+        localStorage.removeItem('cart_coupon');
+      }
+    } catch {}
+  }, [coupon]);
 
   useEffect(() => {
     try {
@@ -129,18 +139,60 @@ export function CartProvider({ children }: { children: ReactNode }) {
       getTotalItems,
       loading
       ,
-      applyCoupon: (code: string) => {
-        // simple coupon: FRUNKO5 -> 5% off
+      applyCoupon: async (code: string) => {
         if (!code) return false;
         const normalized = code.trim().toUpperCase();
-        if (normalized === 'FRUNKO5') {
-          setCoupon({ code: normalized, percent: 5 });
-          try { localStorage.setItem('cart_coupon', JSON.stringify({ code: normalized, percent: 5 })); } catch {}
-          toast.success('Coupon applied: 5% off');
+        
+        try {
+          // Check database for valid coupon
+          const { data: coupon, error } = await supabase
+            .from('coupon_codes')
+            .select('*')
+            .eq('code', normalized)
+            .eq('is_active', true)
+            .single();
+
+          if (error || !coupon) {
+            toast.error('Invalid coupon code');
+            return false;
+          }
+
+          // Check if coupon is still valid
+          const now = new Date();
+          if (coupon.valid_until && new Date(coupon.valid_until) < now) {
+            toast.error('This coupon has expired');
+            return false;
+          }
+
+          // Check usage limit
+          if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+            toast.error('This coupon has reached its usage limit');
+            return false;
+          }
+
+          // Calculate discount percentage
+          const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+          let discount = 0;
+          
+          if (coupon.discount_type === 'percentage') {
+            discount = (subtotal * coupon.discount_value) / 100;
+            if (coupon.max_discount) {
+              discount = Math.min(discount, coupon.max_discount);
+            }
+          } else {
+            discount = coupon.discount_value;
+          }
+
+          const discountPercent = subtotal > 0 ? (discount / subtotal) * 100 : 0;
+
+          setCoupon({ code: normalized, percent: discountPercent });
+          toast.success(`Coupon applied: ${Math.round(discountPercent)}% off`);
           return true;
+        } catch (error) {
+          console.error('Error applying coupon:', error);
+          toast.error('Failed to apply coupon');
+          return false;
         }
-        toast.error('Invalid coupon');
-        return false;
       },
       removeCoupon: () => {
         setCoupon(null);

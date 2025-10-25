@@ -225,12 +225,11 @@ export default function AdminDashboard() {
       if (couponsError) throw couponsError;
       setCoupons(couponsData || []);
 
-      // Load subscriptions with user and plan details
+      // Load subscriptions with plan details
       const { data: subscriptionsData, error: subscriptionsError } = await supabase
         .from('subscriptions')
         .select(`
           *,
-          profiles!subscriptions_user_id_fkey (*),
           plans (*)
         `)
         .order('created_at', { ascending: false });
