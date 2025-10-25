@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -23,14 +23,42 @@ import { useCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
 
 export default function Cart() {
-  const { items, updateQuantity, removeFromCart, clearCart, getTotalPrice, getTotalItems } = useCart();
+  const { items, updateQuantity, removeFromCart, clearCart, getTotalPrice, getTotalItems, addToCart } = useCart();
   const { user } = useAuth();
+  const location = useLocation();
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Handle weekly selection from WeeklyPlanSelection page
+  useEffect(() => {
+    const weeklySelection = location.state?.weeklySelection;
+    if (weeklySelection && Array.isArray(weeklySelection)) {
+      // Add all items from weekly selection to cart
+      weeklySelection.forEach(dayData => {
+        dayData.items.forEach(({ item, quantity }: any) => {
+          if (item && quantity > 0) {
+            // Add each item the specified number of times
+            for (let i = 0; i < quantity; i++) {
+              addToCart({
+                item_id: item.id,
+                name: item.name,
+                price: item.price,
+                image: item.images?.[0],
+                is_veg: item.is_veg
+              });
+            }
+          }
+        });
+      });
+      toast.success('Weekly menu items added to cart!');
+      // Clear the state to prevent re-adding on refresh
+      navigate('/cart', { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
     updateQuantity(itemId, newQuantity);

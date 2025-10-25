@@ -359,7 +359,16 @@ export default function Profile() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Next billing</span>
                       <span className="font-medium">
-                        {new Date(new Date(sub.start_date).setMonth(new Date(sub.start_date).getMonth() + 1)).toLocaleDateString()}
+                        {(() => {
+                          const startDate = new Date(sub.start_date);
+                          const nextBilling = new Date(startDate);
+                          if (sub.plans?.frequency === 'weekly') {
+                            nextBilling.setDate(startDate.getDate() + 7);
+                          } else {
+                            nextBilling.setMonth(startDate.getMonth() + 1);
+                          }
+                          return nextBilling.toLocaleDateString();
+                        })()}
                       </span>
                     </div>
                   </div>
