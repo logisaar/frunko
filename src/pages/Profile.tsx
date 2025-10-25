@@ -317,6 +317,57 @@ export default function Profile() {
             </div>
           </div>
 
+          {/* Active Subscription Card */}
+          {subscriptions.filter(sub => sub.status === 'active').length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3 px-2">Active Subscription</h3>
+              {subscriptions.filter(sub => sub.status === 'active').map((sub) => (
+                <div key={sub.id} className="bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 border-2 border-primary/30 rounded-2xl p-5 shadow-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start space-x-3">
+                      <Crown className="h-8 w-8 text-primary mt-1" />
+                      <div>
+                        <h3 className="font-bold text-xl">{sub.plans?.name || 'Premium Plan'}</h3>
+                        <p className="text-sm text-muted-foreground">{sub.plans?.description || 'Subscription plan'}</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500 text-white">Active</Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        <span className="text-xs text-muted-foreground">Price</span>
+                      </div>
+                      <div className="font-bold text-lg">₹{sub.plans?.price}</div>
+                      <div className="text-xs text-muted-foreground capitalize">per {sub.plans?.frequency}</div>
+                    </div>
+                    <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <span className="text-xs text-muted-foreground">Started</span>
+                      </div>
+                      <div className="font-bold text-sm">{new Date(sub.start_date).toLocaleDateString()}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {sub.end_date ? `Ends ${new Date(sub.end_date).toLocaleDateString()}` : 'Ongoing'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-primary/20">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Next billing</span>
+                      <span className="font-medium">
+                        {new Date(new Date(sub.start_date).setMonth(new Date(sub.start_date).getMonth() + 1)).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Action list */}
           <div className="mt-6 space-y-3">
             <a href="#" onClick={(e) => { e.preventDefault(); setSubscriptionsDialogOpen(true); }} className="flex items-center justify-between bg-card rounded-full p-4 shadow-sm hover:shadow-warm transition">

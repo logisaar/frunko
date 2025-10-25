@@ -34,7 +34,8 @@ import {
   X,
   MessageSquare,
   Tag,
-  Percent
+  Percent,
+  Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
@@ -61,7 +62,9 @@ export default function AdminDashboard() {
     totalOrders: 0,
     totalRevenue: 0,
     totalUsers: 0,
-    totalItems: 0
+    totalItems: 0,
+    activeSubscriptions: 0,
+    totalSubscriptionRevenue: 0
   });
 
   // Form states
@@ -237,11 +240,18 @@ export default function AdminDashboard() {
 
       // Calculate stats from all data
       const totalRevenue = (ordersData || []).reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+      const activeSubscriptionsCount = (subscriptionsData || []).filter(sub => sub.status === 'active').length;
+      const subscriptionRevenue = (subscriptionsData || [])
+        .filter(sub => sub.status === 'active')
+        .reduce((sum, sub) => sum + Number((sub as any).plans?.price || 0), 0);
+      
       setStats({
         totalOrders: (ordersData || []).length,
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         totalUsers: (usersData || []).length,
-        totalItems: (itemsData || []).length
+        totalItems: (itemsData || []).length,
+        activeSubscriptions: activeSubscriptionsCount,
+        totalSubscriptionRevenue: Math.round(subscriptionRevenue * 100) / 100
       });
 
     } catch (error: any) {
@@ -717,7 +727,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -765,18 +775,42 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Active Subs</p>
+                  <p className="text-2xl font-bold">{stats.activeSubscriptions}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Sub Revenue</p>
+                  <p className="text-2xl font-bold">₹{stats.totalSubscriptionRevenue}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="items">Items</TabsTrigger>
-            <TabsTrigger value="plans">Plans</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
-            <TabsTrigger value="coupons">Coupons</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
+            <TabsTrigger value="overview" className="text-xs lg:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="orders" className="text-xs lg:text-sm">Orders</TabsTrigger>
+            <TabsTrigger value="items" className="text-xs lg:text-sm">Items</TabsTrigger>
+            <TabsTrigger value="plans" className="text-xs lg:text-sm">Plans</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs lg:text-sm">Users</TabsTrigger>
+            <TabsTrigger value="subscriptions" className="text-xs lg:text-sm">Subs</TabsTrigger>
+            <TabsTrigger value="reviews" className="text-xs lg:text-sm">Reviews</TabsTrigger>
+            <TabsTrigger value="coupons" className="text-xs lg:text-sm">Coupons</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -831,6 +865,69 @@ export default function AdminDashboard() {
                         </Badge>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Subscription Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Crown className="h-5 w-5 text-primary" />
+                    <span>Active Subscriptions</span>
+                  </CardTitle>
+                  <CardDescription>Users with active subscription plans</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {subscriptions.filter(sub => sub.status === 'active').slice(0, 5).map((sub: any) => (
+                      <div key={sub.id} className="flex items-center justify-between p-3 border rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5">
+                        <div>
+                          <p className="font-semibold">{sub.profiles?.full_name || 'Unknown'}</p>
+                          <p className="text-sm text-muted-foreground">{sub.plans?.name} - ₹{sub.plans?.price}/{sub.plans?.frequency}</p>
+                        </div>
+                        <Badge className="bg-green-500">Active</Badge>
+                      </div>
+                    ))}
+                    {subscriptions.filter(sub => sub.status === 'active').length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground">No active subscriptions</div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    <span>Subscription Stats</span>
+                  </CardTitle>
+                  <CardDescription>Summary of subscription metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <span className="text-sm font-medium">Total Subscriptions</span>
+                      <span className="text-xl font-bold">{subscriptions.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                      <span className="text-sm font-medium">Active</span>
+                      <span className="text-xl font-bold text-green-600">{subscriptions.filter(sub => sub.status === 'active').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50">
+                      <span className="text-sm font-medium">Paused</span>
+                      <span className="text-xl font-bold text-yellow-600">{subscriptions.filter(sub => sub.status === 'paused').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-red-50">
+                      <span className="text-sm font-medium">Cancelled</span>
+                      <span className="text-xl font-bold text-red-600">{subscriptions.filter(sub => sub.status === 'cancelled').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-primary/10">
+                      <span className="text-sm font-medium">Monthly Revenue</span>
+                      <span className="text-xl font-bold text-primary">₹{stats.totalSubscriptionRevenue}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

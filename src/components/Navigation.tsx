@@ -3,6 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   ShoppingCart, 
   User, 
@@ -28,6 +30,35 @@ export default function Navigation() {
   const { user, signOut } = useAuth();
   const { getTotalItems } = useCart();
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .in('role', ['admin', 'super_admin', 'manager']);
+
+        if (!error && data && data.length > 0) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminRole();
+  }, [user]);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -139,12 +170,14 @@ export default function Navigation() {
                   My Orders
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/admin" className="flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Admin Dashboard
-                </Link>
-              </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link to="/admin" className="flex items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Admin Dashboard
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="flex items-center text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
