@@ -81,7 +81,7 @@ export default function Navigation() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <UtensilsCrossed className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold bg-gradient-primary bg-clip-text font-bold text-primary">
+            <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Morning Food Web
             </span>
           </Link>

@@ -83,6 +83,7 @@ export default function AdminDashboard() {
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
   const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
   const [subscriptionToDelete, setSubscriptionToDelete] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Item form
   const [itemForm, setItemForm] = useState({
@@ -235,7 +236,22 @@ export default function AdminDashboard() {
         .order('created_at', { ascending: false });
 
       if (subscriptionsError) throw subscriptionsError;
-      setSubscriptions(subscriptionsData || []);
+      
+      // Fetch profiles to join with subscriptions
+      const { data: subProfilesData } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email');
+      
+      // Create lookup map for profiles
+      const subProfilesMap = new Map(subProfilesData?.map(p => [p.user_id, p]) || []);
+      
+      // Join the data manually
+      const enrichedSubscriptions = (subscriptionsData || []).map(sub => ({
+        ...sub,
+        profiles: subProfilesMap.get(sub.user_id) || null
+      }));
+      
+      setSubscriptions(enrichedSubscriptions);
 
       // Calculate stats from all data
       const totalRevenue = (ordersData || []).reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
@@ -579,6 +595,36 @@ export default function AdminDashboard() {
     } catch (error: any) {
       toast.error('Failed to delete subscription');
       console.error('Error deleting subscription:', error);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      // Delete user's subscriptions first
+      await supabase.from('subscriptions').delete().eq('user_id', userId);
+      
+      // Delete user's orders and order items
+      const { data: userOrders } = await supabase.from('orders').select('id').eq('user_id', userId);
+      if (userOrders) {
+        for (const order of userOrders) {
+          await supabase.from('order_items').delete().eq('order_id', order.id);
+        }
+        await supabase.from('orders').delete().eq('user_id', userId);
+      }
+      
+      // Delete user's reviews
+      await supabase.from('reviews').delete().eq('user_id', userId);
+      
+      // Delete user profile
+      const { error } = await supabase.from('profiles').delete().eq('user_id', userId);
+      
+      if (error) throw error;
+      toast.success('User deleted successfully');
+      setUserToDelete(null);
+      loadDashboardData();
+    } catch (error: any) {
+      toast.error('Failed to delete user');
+      console.error('Error deleting user:', error);
     }
   };
 
@@ -1317,6 +1363,9 @@ export default function AdminDashboard() {
                           <Button variant="outline" size="sm" onClick={() => openEditUser(user)}>
                             <Edit className="h-4 w-4" />
                           </Button>
+                          <Button variant="outline" size="sm" onClick={() => setUserToDelete(user.user_id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
@@ -1498,6 +1547,178 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Coupons Tab */}
+          <TabsContent value="coupons" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2">
+                      <span>Coupon Codes</span>
+                    </CardTitle>
+                    <CardDescription>Manage discount codes and promotions</CardDescription>
+                  </div>
+                  <Dialog open={showCouponDialog} onOpenChange={setShowCouponDialog}>
+                    <Button onClick={() => {
+                      setEditingCoupon(null);
+                      resetCouponForm();
+                      setShowCouponDialog(true);
+                    }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Coupon
+                    </Button>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{editingCoupon ? 'Edit Coupon' : 'Create New Coupon'}</DialogTitle>
+                        <DialogDescription>
+                          {editingCoupon ? 'Update coupon code details.' : 'Add a new discount coupon code.'}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Coupon Code</Label>
+                          <Input 
+                            value={couponForm.code} 
+                            onChange={(e) => setCouponForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                            placeholder="e.g., SAVE20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Discount Type</Label>
+                          <Select value={couponForm.discount_type} onValueChange={(value: 'percentage' | 'fixed') => setCouponForm(prev => ({ ...prev, discount_type: value }))}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="percentage">Percentage (%)</SelectItem>
+                              <SelectItem value="fixed">Fixed Amount (₹)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Discount Value</Label>
+                          <Input 
+                            type="number" 
+                            value={couponForm.discount_value} 
+                            onChange={(e) => setCouponForm(prev => ({ ...prev, discount_value: e.target.value }))}
+                            placeholder={couponForm.discount_type === 'percentage' ? '20' : '100'}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Minimum Order Value (Optional)</Label>
+                          <Input 
+                            type="number" 
+                            value={couponForm.min_order_value} 
+                            onChange={(e) => setCouponForm(prev => ({ ...prev, min_order_value: e.target.value }))}
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Max Discount Amount (Optional)</Label>
+                          <Input 
+                            type="number" 
+                            value={couponForm.max_discount} 
+                            onChange={(e) => setCouponForm(prev => ({ ...prev, max_discount: e.target.value }))}
+                            placeholder="No limit"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Usage Limit (Optional)</Label>
+                          <Input 
+                            type="number" 
+                            value={couponForm.usage_limit} 
+                            onChange={(e) => setCouponForm(prev => ({ ...prev, usage_limit: e.target.value }))}
+                            placeholder="Unlimited"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Valid Until (Optional)</Label>
+                          <Input 
+                            type="datetime-local" 
+                            value={couponForm.valid_until} 
+                            onChange={(e) => setCouponForm(prev => ({ ...prev, valid_until: e.target.value }))}
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="checkbox" 
+                            id="is-active"
+                            checked={couponForm.is_active}
+                            onChange={(e) => setCouponForm(prev => ({ ...prev, is_active: e.target.checked }))}
+                            className="h-4 w-4"
+                          />
+                          <Label htmlFor="is-active">Active</Label>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button onClick={handleSaveCoupon} className="flex-1">
+                            <Save className="h-4 w-4 mr-2" />
+                            {editingCoupon ? 'Update' : 'Create'}
+                          </Button>
+                          <Button variant="outline" onClick={() => setShowCouponDialog(false)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {coupons.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">No coupons created yet</div>
+                ) : (
+                  <div className="space-y-3">
+                    {coupons.map((coupon) => (
+                      <div key={coupon.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <h3 className="font-semibold text-lg">{coupon.code}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {coupon.discount_type === 'percentage' 
+                                ? `${coupon.discount_value}% off` 
+                                : `₹${coupon.discount_value} off`}
+                              {coupon.min_order_value > 0 && ` on orders above ₹${coupon.min_order_value}`}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={coupon.is_active ? 'default' : 'secondary'}>
+                              {coupon.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                            <Button variant="outline" size="sm" onClick={() => {
+                              setEditingCoupon(coupon);
+                              setCouponForm({
+                                code: coupon.code,
+                                discount_type: coupon.discount_type as 'percentage' | 'fixed',
+                                discount_value: coupon.discount_value.toString(),
+                                min_order_value: coupon.min_order_value?.toString() || '',
+                                max_discount: coupon.max_discount?.toString() || '',
+                                usage_limit: coupon.usage_limit?.toString() || '',
+                                valid_until: coupon.valid_until || '',
+                                is_active: coupon.is_active
+                              });
+                              setShowCouponDialog(true);
+                            }}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setCouponToDelete(coupon.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                          {coupon.max_discount && <div>Max discount: ₹{coupon.max_discount}</div>}
+                          {coupon.usage_limit && <div>Usage limit: {coupon.usage_limit} (Used: {coupon.used_count})</div>}
+                          {coupon.valid_until && <div>Valid until: {new Date(coupon.valid_until).toLocaleString()}</div>}
+                          <div>Created: {new Date(coupon.created_at).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         {/* Delete Item Confirmation Dialog */}
@@ -1555,6 +1776,48 @@ export default function AdminDashboard() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={() => subscriptionToDelete && handleDeleteSubscription(subscriptionToDelete)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete User Confirmation Dialog */}
+        <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this user? This will also delete all their orders, subscriptions, and reviews. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => userToDelete && handleDeleteUser(userToDelete)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Coupon Confirmation Dialog */}
+        <AlertDialog open={!!couponToDelete} onOpenChange={() => setCouponToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Coupon</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this coupon code? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => couponToDelete && handleDeleteCoupon(couponToDelete)}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Delete

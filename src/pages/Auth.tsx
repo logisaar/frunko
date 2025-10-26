@@ -32,7 +32,9 @@ export default function Auth() {
     email: '',
     password: '',
     fullName: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: '',
+    otp: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -131,6 +133,8 @@ export default function Auth() {
     }
   };
 
+
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-warm-bg">
@@ -140,39 +144,32 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-bg to-primary/5 p-4 relative overflow-hidden">
-      {/* Background Image with Overlay - MODIFIED LINE BELOW */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat animate-fade-in auth-background"
-      />
-      <div className="absolute inset-0 bg-black/20" />
-
-      {/* Animated Card */}
-      <Card className="w-full max-w-md shadow-warm glass animate-slide-up relative z-10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-bg to-primary/5 p-4">
+      <Card className="w-full max-w-md shadow-warm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary animate-bounce-in">
-            Morning Food Web
+          <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
+            FRUNKO.in
           </CardTitle>
-          <CardDescription className="animate-fade-in-delayed">
+          <CardDescription>
             Your favorite meals, delivered fresh
           </CardDescription>
         </CardHeader>
-        <CardContent className="animate-fade-in-delayed-2">
+        <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 animate-slide-up-delayed">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">
                 <Mail className="h-4 w-4 mr-1" />
-                Email
+                Sign In
               </TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
             {/* Email Sign In */}
-            <TabsContent value="signin" className="space-y-4 animate-slide-up-delayed-2">
+            <TabsContent value="signin" className="space-y-4">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full hover:scale-105 transition-transform duration-200"
+                className="w-full"
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
               >
@@ -184,7 +181,7 @@ export default function Auth() {
                 </svg>
                 Continue with Google
               </Button>
-
+              
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -204,7 +201,6 @@ export default function Auth() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
@@ -217,13 +213,12 @@ export default function Auth() {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full hover:scale-105 transition-transform duration-200"
+                <Button 
+                  type="submit" 
+                  className="w-full"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Signing In...' : 'Sign In'}
@@ -231,14 +226,12 @@ export default function Auth() {
               </form>
             </TabsContent>
 
-
-            
             {/* Sign Up */}
-            <TabsContent value="signup" className="space-y-4 animate-slide-up-delayed-2">
+            <TabsContent value="signup" className="space-y-4">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full hover:scale-105 transition-transform duration-200"
+                className="w-full"
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
               >
@@ -270,7 +263,6 @@ export default function Auth() {
                     value={formData.fullName}
                     onChange={handleInputChange}
                     required
-                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
                 </div>
@@ -283,7 +275,6 @@ export default function Auth() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
@@ -296,7 +287,6 @@ export default function Auth() {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
@@ -309,13 +299,12 @@ export default function Auth() {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
-                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full hover:scale-105 transition-transform duration-200"
+                <Button 
+                  type="submit" 
+                  className="w-full"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Creating Account...' : 'Create Account'}
