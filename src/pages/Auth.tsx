@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { Smartphone, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 const signUpSchema = z.object({
   email: z.string().email('Invalid email address').max(255),
@@ -25,24 +25,16 @@ const signInSchema = z.object({
   password: z.string().min(1, 'Password is required').max(100)
 });
 
-const phoneSchema = z.object({
-  phone: z.string().regex(/^\+[1-9]\d{1,14}$/, 'Phone must be in format +[country code][number]')
-});
-
 export default function Auth() {
-  const { signUp, signIn, signInWithGoogle, signInWithPhone, verifyOTP, user, loading } = useAuth();
+  const { signUp, signIn, signInWithGoogle, user, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
-    confirmPassword: '',
-    phone: '',
-    otp: ''
+    confirmPassword: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showOTPInput, setShowOTPInput] = useState(false);
-  const [phoneForOTP, setPhoneForOTP] = useState('');
 
   // Redirect if already authenticated
   if (!loading && user) {
@@ -139,59 +131,6 @@ export default function Auth() {
     }
   };
 
-  const handlePhoneSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrors({});
-
-    try {
-      const validatedData = phoneSchema.parse({ phone: formData.phone });
-      
-      const { error } = await signInWithPhone(validatedData.phone);
-
-      if (error) {
-        toast.error(error.message || 'Failed to send OTP');
-      } else {
-        toast.success('OTP sent to your phone!');
-        setShowOTPInput(true);
-        setPhoneForOTP(validatedData.phone);
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        error.issues.forEach((err) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[String(err.path[0])] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const { error } = await verifyOTP(phoneForOTP, formData.otp);
-
-      if (error) {
-        toast.error(error.message || 'Invalid OTP');
-      } else {
-        toast.success('Phone verified! Welcome!');
-        setShowOTPInput(false);
-        setFormData(prev => ({ ...prev, phone: '', otp: '' }));
-      }
-    } catch (error) {
-      toast.error('Failed to verify OTP');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-warm-bg">
@@ -201,36 +140,39 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-bg to-primary/5 p-4">
-      <Card className="w-full max-w-md shadow-warm">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-bg to-primary/5 p-4 relative overflow-hidden">
+      {/* Background Image with Overlay - MODIFIED LINE BELOW */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat animate-fade-in auth-background"
+      />
+      <div className="absolute inset-0 bg-black/20" />
+
+      {/* Animated Card */}
+      <Card className="w-full max-w-md shadow-warm glass animate-slide-up relative z-10">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
-            FRUNKO.in
+          <CardTitle className="text-2xl font-bold text-primary animate-bounce-in">
+            Morning Food Web
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="animate-fade-in-delayed">
             Your favorite meals, delivered fresh
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="animate-fade-in-delayed-2">
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2 animate-slide-up-delayed">
               <TabsTrigger value="signin">
                 <Mail className="h-4 w-4 mr-1" />
                 Email
-              </TabsTrigger>
-              <TabsTrigger value="phone">
-                <Smartphone className="h-4 w-4 mr-1" />
-                Phone
               </TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
             {/* Email Sign In */}
-            <TabsContent value="signin" className="space-y-4">
+            <TabsContent value="signin" className="space-y-4 animate-slide-up-delayed-2">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full hover:scale-105 transition-transform duration-200"
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
               >
@@ -242,7 +184,7 @@ export default function Auth() {
                 </svg>
                 Continue with Google
               </Button>
-              
+
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -262,6 +204,7 @@ export default function Auth() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
+                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
@@ -274,12 +217,13 @@ export default function Auth() {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
+                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full"
+                <Button
+                  type="submit"
+                  className="w-full hover:scale-105 transition-transform duration-200"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Signing In...' : 'Sign In'}
@@ -287,81 +231,14 @@ export default function Auth() {
               </form>
             </TabsContent>
 
-            {/* Phone Sign In */}
-            <TabsContent value="phone" className="space-y-4">
-              {!showOTPInput ? (
-                <form onSubmit={handlePhoneSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      placeholder="+919876543210"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Include country code (e.g., +91 for India)
-                    </p>
-                    {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Sending OTP...' : 'Send OTP'}
-                  </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleVerifyOTP} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="otp">Enter OTP</Label>
-                    <Input
-                      id="otp"
-                      name="otp"
-                      type="text"
-                      placeholder="123456"
-                      maxLength={6}
-                      value={formData.otp}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      OTP sent to {phoneForOTP}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      type="submit" 
-                      className="flex-1"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? 'Verifying...' : 'Verify OTP'}
-                    </Button>
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setShowOTPInput(false);
-                        setFormData(prev => ({ ...prev, otp: '' }));
-                      }}
-                    >
-                      Back
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </TabsContent>
+
             
             {/* Sign Up */}
-            <TabsContent value="signup" className="space-y-4">
+            <TabsContent value="signup" className="space-y-4 animate-slide-up-delayed-2">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full hover:scale-105 transition-transform duration-200"
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
               >
@@ -393,6 +270,7 @@ export default function Auth() {
                     value={formData.fullName}
                     onChange={handleInputChange}
                     required
+                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
                 </div>
@@ -405,6 +283,7 @@ export default function Auth() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
+                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
@@ -417,6 +296,7 @@ export default function Auth() {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
+                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
@@ -429,12 +309,13 @@ export default function Auth() {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
+                    className="focus:scale-105 transition-transform duration-200"
                   />
                   {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full"
+                <Button
+                  type="submit"
+                  className="w-full hover:scale-105 transition-transform duration-200"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Creating Account...' : 'Create Account'}

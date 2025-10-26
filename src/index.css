@@ -191,3 +191,15 @@ All colors MUST be HSL.
     display: none;
   }
 }
+/* Add this to your global CSS file */
+.auth-background {
+  /* Mobile background by default */
+  background-image: url('/assets/login-background-mobile.jpg');
+}
+
+/* Switch to desktop background on screens wider than 768px */
+@media (min-width: 768px) {
+  .auth-background {
+    background-image: url('/assets/login-background-desktop.jpg');
+  }
+}
