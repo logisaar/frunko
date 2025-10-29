@@ -144,8 +144,9 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-bg to-primary/5 p-4">
-      <Card className="w-full max-w-md shadow-warm">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-warm-bg to-primary/5 p-4">
+      <div className="flex-grow flex items-center justify-center">
+        <Card className="w-full max-w-md shadow-warm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
             FRUNKO.in
@@ -314,6 +315,15 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
+      </div>
+      <footer className="mt-4 p-4">
+        <p className="text-center text-sm text-muted-foreground">
+          © 2025 All Rights Reserved | Made by{' '}
+          <a href="https://logisaar.in" target="_blank" className="text-primary hover:underline">
+            Logisaar
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
