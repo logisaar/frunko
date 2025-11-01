@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search, Star, Leaf, Plus, ChefHat } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
@@ -18,6 +19,8 @@ export default function Menu() {
   const [selectedCategory, setSelectedCategory] =
     useState<FoodCategory | "all">("all");
   const [loading, setLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { addToCart } = useCart();
 
   const categories: (FoodCategory | "all")[] = [
@@ -83,6 +86,12 @@ export default function Menu() {
       image: item.images?.[0],
       is_veg: item.is_veg,
     });
+    setDialogOpen(false);
+  };
+
+  const openDialog = (item: FoodItem) => {
+    setSelectedItem(item);
+    setDialogOpen(true);
   };
 
   if (loading) {
@@ -102,7 +111,7 @@ export default function Menu() {
           alt="Frunko"
           className="w-24 h-24 mb-2"
         />
-        <h1 className="text-2xl font-bold text-[#3B1F0A]">FRuNKO</h1>
+        <h1 className="text-2xl font-bold text-[#3B1F0A]">FRUNKO</h1>
         <p className="text-sm text-[#6E4E29]">Pay for your health</p>
       </div>
 
@@ -148,12 +157,13 @@ export default function Menu() {
 
       {/* Fruits A–Z */}
       <div className="px-4 mt-4">
-        <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">Fruits A–Z</h3>
+        <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">Mix & Munch Fruits</h3>
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
           {filteredItems.slice(0, 5).map((item) => (
             <div
               key={item.id}
-              className="flex flex-col items-center text-center flex-shrink-0"
+              className="flex flex-col items-center text-center flex-shrink-0 cursor-pointer"
+              onClick={() => openDialog(item)}
             >
               <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center overflow-hidden">
                 {item.images && item.images.length > 0 && item.images[0] ? (
@@ -186,13 +196,14 @@ export default function Menu() {
       {/* Juices & Smoothies */}
       <div className="px-4 mt-2">
         <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">
-          Juices & Smoothies
+          Natural Juices & Smoothies
         </h3>
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
           {filteredItems.slice(5, 10).map((item) => (
             <Card
               key={item.id}
-              className="w-40 flex-shrink-0 rounded-xl overflow-hidden bg-white shadow"
+              className="w-40 flex-shrink-0 rounded-xl overflow-hidden bg-white shadow cursor-pointer"
+              onClick={() => openDialog(item)}
             >
               <div className="h-32 overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
                 {item.images && item.images.length > 0 && item.images[0] ? (
@@ -214,13 +225,6 @@ export default function Menu() {
                   {item.name}
                 </p>
                 <p className="text-xs text-[#6E4E29] mb-2">₹{item.price}</p>
-                <Button
-                  size="sm"
-                  className="bg-[#F7934C] hover:bg-[#e9833e] text-white text-xs px-3 py-1 rounded-full"
-                  onClick={() => handleAddToCart(item)}
-                >
-                  <Plus className="h-3 w-3 mr-1" /> Add
-                </Button>
               </div>
             </Card>
           ))}
@@ -236,7 +240,8 @@ export default function Menu() {
           {filteredItems.slice(10, 16).map((item) => (
             <Card
               key={item.id}
-              className="w-36 flex-shrink-0 rounded-xl bg-white shadow"
+              className="w-36 flex-shrink-0 rounded-xl bg-white shadow cursor-pointer"
+              onClick={() => openDialog(item)}
             >
               <div className="w-full h-28 bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center rounded-t-xl overflow-hidden">
                 {item.images && item.images.length > 0 && item.images[0] ? (
@@ -258,18 +263,76 @@ export default function Menu() {
                   {item.name}
                 </p>
                 <p className="text-xs text-[#6E4E29] mb-2">₹{item.price}</p>
-                <Button
-                  size="sm"
-                  className="bg-[#F7934C] hover:bg-[#e9833e] text-white text-xs w-full rounded-full"
-                  onClick={() => handleAddToCart(item)}
-                >
-                  Add
-                </Button>
               </div>
             </Card>
           ))}
         </div>
       </div>
+
+      {/* Product Details Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center text-[#3B1F0A]">
+              {selectedItem?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Product Image */}
+            <div className="flex justify-center">
+              {selectedItem?.images && selectedItem.images.length > 0 && selectedItem.images[0] ? (
+                <img
+                  src={selectedItem.images[0]}
+                  alt={selectedItem.name}
+                  className="w-48 h-48 object-cover rounded-lg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-48 h-48 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center">
+                  <ChefHat className="h-24 w-24 text-orange-400" />
+                </div>
+              )}
+            </div>
+
+            {/* Product Details */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-semibold text-[#3B1F0A]">
+                  ₹{selectedItem?.price}
+                </span>
+                <div className="flex items-center gap-1">
+                  {selectedItem?.is_veg ? (
+                    <Leaf className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <ChefHat className="h-4 w-4 text-red-600" />
+                  )}
+                  <span className="text-xs text-[#6E4E29]">
+                    {selectedItem?.is_veg ? "Veg" : "Non-Veg"}
+                  </span>
+                </div>
+              </div>
+
+              {selectedItem?.description && (
+                <p className="text-sm text-[#6E4E29] leading-relaxed">
+                  {selectedItem.description}
+                </p>
+              )}
+            </div>
+
+            {/* Add to Cart Button */}
+            <Button
+              onClick={() => selectedItem && handleAddToCart(selectedItem)}
+              className="w-full bg-[#F7934C] hover:bg-[#e9833e] text-white py-3 rounded-lg font-semibold"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add to Cart
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

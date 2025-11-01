@@ -20,6 +20,7 @@ import PaymentDemo from "./pages/PaymentDemo";
 import WeeklyPlanSelection from "./pages/WeeklyPlanSelection";
 import MonthlyPlanSelection from "./pages/MonthlyPlanSelection";
 import Orders from "./pages/Orders";
+import Reviews from "./pages/Reviews";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,7 +42,7 @@ const App = () => (
               <Route path="/plans" element={<Plans />} />
               <Route path="/weekly-plan-selection" element={<WeeklyPlanSelection />} />
               <Route path="/monthly-plan-selection" element={<MonthlyPlanSelection />} />
-              <Route path="/reviews" element={<NotFound />} />
+              <Route path="/reviews" element={<Reviews />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/profile" element={<Profile />} />

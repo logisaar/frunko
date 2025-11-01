@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Search,
   Star,
@@ -43,6 +44,8 @@ export default function Home() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -185,7 +188,7 @@ export default function Home() {
                 <Clock className="h-10 w-10 text-[#F7934C] group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xl font-semibold mb-2 group-hover:text-[#F7934C] transition-colors duration-300">Fast Delivery</h3>
-              <p className="text-[#6E4E29]">Fresh meals delivered within 30 minutes to your doorstep</p>
+              <p className="text-[#6E4E29]">Fresh meals delivered your doorstep</p>
             </div>
             <div className="text-center group hover:scale-105 transition-transform duration-300 animate-slide-up-delayed">
               <div className="w-20 h-20 bg-gradient-to-br from-[#F9E9D2] to-[#F5E0C8] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
@@ -334,7 +337,14 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {filteredItems.map((item, index) => (
-              <Card key={item.id} className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up h-full flex flex-col ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}>
+              <Card
+                key={item.id}
+                className={`group relative overflow-hidden bg-gradient-to-br from-white via-orange-50 to-orange-100 border-2 border-transparent hover:border-orange-200 shadow-lg hover:shadow-2xl hover:shadow-orange-200/50 transition-all duration-500 hover:-translate-y-2 hover:scale-105 rounded-xl animate-slide-up h-full flex flex-col cursor-pointer ${index % 3 === 1 ? 'animate-slide-up-delayed' : index % 3 === 2 ? 'animate-slide-up-delayed-2' : ''}`}
+                onClick={() => {
+                  setSelectedItem(item);
+                  setDialogOpen(true);
+                }}
+              >
                 {/* Gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
 
@@ -389,13 +399,16 @@ export default function Home() {
                   </div>
                   <Button
                     className="w-full mt-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 group-hover:shadow-orange-300/50"
-                    onClick={() => addToCart({
-                      item_id: item.id,
-                      name: item.name,
-                      price: item.price,
-                      image: item.images?.[0],
-                      is_veg: item.is_veg
-                    })}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the card's onClick
+                      addToCart({
+                        item_id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        image: item.images?.[0],
+                        is_veg: item.is_veg
+                      });
+                    }}
                   >
                     <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                     Add to Cart
@@ -420,6 +433,72 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Product Details Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md mx-auto">
+          {selectedItem && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold">{selectedItem.name}</DialogTitle>
+                <DialogDescription className="text-gray-600">{selectedItem.description}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="w-full h-64 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center overflow-hidden">
+                  {selectedItem.images && selectedItem.images.length > 0 && selectedItem.images[0] ? (
+                    <img
+                      src={selectedItem.images[0]}
+                      alt={selectedItem.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <ChefHat className="h-16 w-16 text-orange-400" />
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    {selectedItem.is_veg ? (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
+                        <Leaf className="h-3 w-3 mr-1" />
+                        Veg
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200">
+                        Non-Veg
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-1 text-yellow-500">
+                    <Star className="h-4 w-4 fill-current" />
+                    <span className="text-sm text-muted-foreground font-medium">4.5</span>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-orange-600">₹{selectedItem.price}</div>
+                <Button
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                  onClick={() => {
+                    addToCart({
+                      item_id: selectedItem.id,
+                      name: selectedItem.name,
+                      price: selectedItem.price,
+                      image: selectedItem.images?.[0],
+                      is_veg: selectedItem.is_veg
+                    });
+                    setDialogOpen(false);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

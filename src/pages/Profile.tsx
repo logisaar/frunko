@@ -10,12 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Clock, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Clock,
   Star,
   MessageSquare,
   Package,
@@ -28,7 +28,9 @@ import {
   Plus,
   Calendar,
   Crown,
-  DollarSign
+  DollarSign,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
@@ -226,7 +228,18 @@ export default function Profile() {
           order_id: null
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        // Check for specific RLS policy errors
+        if (error.code === '42501') {
+          toast.error('Permission denied. Please try again or contact support.');
+        } else if (error.code === '23505') {
+          toast.error('You have already reviewed this item.');
+        } else {
+          toast.error(`Failed to submit review: ${error.message}`);
+        }
+        throw error;
+      }
 
       toast.success('Review submitted successfully!');
       setReviewDialogOpen(false);
@@ -234,7 +247,7 @@ export default function Profile() {
       loadUserData(); // Refresh reviews list
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      toast.error('Failed to submit review');
+      // Error already handled above, just log
     }
   };
 
@@ -430,10 +443,18 @@ export default function Profile() {
             </a>
           </div>
 
-          {/* Footer with terms & theme toggle */}
-          <div className="mt-8 bg-card rounded-2xl p-4 shadow-sm flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+          {/* Terms & Policies Section */}
+          <div className="mt-8 bg-card rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Terms & Policies</span>
+              <span className="text-muted-foreground text-sm">{'>'}</span>
+            </div>
+          </div>
+
+          {/* Theme Toggle Section */}
+          <div className="mt-4 bg-card rounded-2xl p-4 shadow-sm flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium">Theme</span>
             </div>
             <div>
               <Button
@@ -446,7 +467,7 @@ export default function Profile() {
                   try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch {}
                 }}
               >
-                Toggle
+                {document.documentElement.classList.contains('dark') ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
             </div>
           </div>
