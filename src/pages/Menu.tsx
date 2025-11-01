@@ -157,7 +157,7 @@ export default function Menu() {
 
       {/* Fruits A–Z */}
       <div className="px-4 mt-4">
-        <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">Mix & Munch Fruits</h3>
+        <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">Natural Juices & Smoothies</h3>
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
           {filteredItems.slice(0, 5).map((item) => (
             <div
@@ -196,7 +196,7 @@ export default function Menu() {
       {/* Juices & Smoothies */}
       <div className="px-4 mt-2">
         <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">
-          Natural Juices & Smoothies
+          Mix & Munch Fruits
         </h3>
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
           {filteredItems.slice(5, 10).map((item) => (
