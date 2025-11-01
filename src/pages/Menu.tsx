@@ -133,9 +133,19 @@ export default function Menu() {
 
       {/* Promo Banners */}
       <div className="px-4 overflow-x-auto flex gap-4 pb-4 hide-scrollbar">
+         <img
+          src="/assets/mix.png"
+          alt="Hostel Combos Save More"
+          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
+        />
         <img
           src="/assets/veggie salad.png"
           alt="Daily Fresh Bowls"
+          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
+        />
+        <img
+          src="/assets/banana_shake.png"
+          alt="banana-shake"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
         <img
@@ -145,6 +155,11 @@ export default function Menu() {
         />
         <img
           src="/assets/chocolate oats.png"
+          alt="Hostel Combos Save More"
+          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
+        />
+        <img
+          src="/assets/chia.png"
           alt="Hostel Combos Save More"
           className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
         />
