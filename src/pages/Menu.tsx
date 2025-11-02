@@ -118,7 +118,7 @@ export default function Menu() {
       {/* Greeting + Search Bar */}
       <div className="px-4">
         <h2 className="font-semibold text-lg mb-2 text-[#3B1F0A]">
-          Hey Hostel Champ!
+          Hey Hostel Champ.!
         </h2>
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#6E4E29] h-5 w-5" />
