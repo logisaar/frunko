@@ -47,6 +47,7 @@ const Index = () => {
 
   // If no user, redirect to auth
   if (!user) {
+    console.log('No user found, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 

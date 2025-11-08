@@ -22,9 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+
+        console.log('Auth state change:', event, session?.user?.id);
+
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -33,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed successfully');
         }
-        
+
         if (event === 'SIGNED_OUT') {
           console.log('User signed out');
         }
@@ -58,6 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check for existing session and refresh if needed
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (!mounted) return;
+
       if (error) {
         console.error('Session error:', error);
         // Clear invalid session
@@ -65,18 +73,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null);
         setUser(null);
       } else {
+        console.log('Existing session found:', session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
       }
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -87,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     });
-    
+
     return { error };
   };
 

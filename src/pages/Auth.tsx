@@ -40,6 +40,7 @@ export default function Auth() {
 
   // Redirect if already authenticated
   if (!loading && user) {
+    console.log('User already authenticated, redirecting to home');
     return <Navigate to="/" replace />;
   }
 

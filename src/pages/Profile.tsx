@@ -110,6 +110,80 @@ export default function Profile() {
           phone: profileData.phone || '',
           address: profileData.address || ''
         });
+      } else {
+        // Profile doesn't exist, create one
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || 'User';
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            full_name: fullName,
+            email: user.email || '',
+          });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          // Set profile with auth data even if insert fails
+          const fallbackProfile = {
+            user_id: user.id,
+            full_name: fullName,
+            email: user.email || '',
+            phone: null,
+            address: null,
+            id: '',
+            role: 'user',
+            last_login: null,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          setProfile(fallbackProfile as any);
+          setProfileForm({
+            full_name: fullName,
+            email: user.email || '',
+            phone: '',
+            address: ''
+          });
+        } else {
+          // Fetch the newly created profile
+          const { data: newProfileData, error: fetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          if (!fetchError && newProfileData) {
+            setProfile(newProfileData);
+            setProfileForm({
+              full_name: newProfileData.full_name,
+              email: newProfileData.email,
+              phone: newProfileData.phone || '',
+              address: newProfileData.address || ''
+            });
+          } else {
+            // Fallback if fetch fails
+            const fallbackProfile = {
+              user_id: user.id,
+              full_name: fullName,
+              email: user.email || '',
+              phone: null,
+              address: null,
+              id: '',
+              role: 'user',
+              last_login: null,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            setProfile(fallbackProfile as any);
+            setProfileForm({
+              full_name: fullName,
+              email: user.email || '',
+              phone: '',
+              address: ''
+            });
+          }
+        }
       }
 
       // Load orders with nested order_items and item details
