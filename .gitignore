@@ -29,5 +29,8 @@ dist-ssr
 server/.env
 client_secret_*.json
 
-# Deployment Guide
+# Deployment & Config Files
 VPS_DEPLOYMENT_GUIDE.md
+vercel.json
+server/.env.example
+paytm-integration-process.md
