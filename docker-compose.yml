@@ -4,16 +4,16 @@ services:
     container_name: frunko_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: frunko_user
-      POSTGRES_PASSWORD: frunko_pass
-      POSTGRES_DB: frunko_db
+      POSTGRES_USER: ${POSTGRES_USER:-frunko_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-frunko_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-frunko_db}
     ports:
       - "5433:5433"
     command: -p 5433
     volumes:
       - frunko_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U frunko_user -d frunko_db -p 5433" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-frunko_user} -d ${POSTGRES_DB:-frunko_db} -p 5433" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://frunko_user:frunko_pass@db:5433/frunko_db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-frunko_user}:${POSTGRES_PASSWORD:-frunko_pass}@db:5433/${POSTGRES_DB:-frunko_db}
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this}
       JWT_EXPIRES_IN: 7d
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
@@ -36,6 +36,8 @@ services:
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:3001/api/auth/google/callback}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8081}
       PORT: 3001
+    volumes:
+      - frunko_uploads:/app/uploads
     ports:
       - "3001:3001"
 
@@ -54,3 +56,4 @@ services:
 
 volumes:
   frunko_pgdata:
+  frunko_uploads:
