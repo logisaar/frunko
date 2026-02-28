@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,14 +51,13 @@ export default function WeeklyPlanSelection() {
 
   const fetchMenuItems = async () => {
     try {
-      const { data, error } = await supabase
-        .from('items')
-        .select('*')
-        .eq('is_available', true)
-        .order('name');
+      const data = await api.getItems();
+      // Map camelCase to snake_case for the frontend type
+      const mappedData = data
+        .filter(item => item.isAvailable)
+        .map(item => ({ ...item, is_veg: item.isVeg }));
 
-      if (error) throw error;
-      setMenuItems(data || []);
+      setMenuItems(mappedData || []);
     } catch (error) {
       console.error('Error fetching menu items:', error);
       toast.error('Failed to load menu items');
@@ -70,7 +70,7 @@ export default function WeeklyPlanSelection() {
     setWeekSelection(prev => {
       const currentQty = prev[day][itemId] || 0;
       const newQty = Math.max(0, currentQty + change);
-      
+
       return {
         ...prev,
         [day]: {
@@ -154,7 +154,7 @@ export default function WeeklyPlanSelection() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-16 md:pt-20 pb-24 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-16 md:pt-20 pb-36 md:pb-24">
       <div className="container mx-auto px-3 md:px-4">
         <div className="mb-4 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">Weekly Menu Selection</h1>
@@ -166,8 +166,8 @@ export default function WeeklyPlanSelection() {
             <Tabs defaultValue="Monday" className="w-full">
               <TabsList className="grid w-full grid-cols-7 gap-0.5 md:gap-1 mb-4 md:mb-6 h-auto p-0.5 md:p-1">
                 {DAYS.map(day => (
-                  <TabsTrigger 
-                    key={day} 
+                  <TabsTrigger
+                    key={day}
                     value={day}
                     className="relative text-[10px] sm:text-xs md:text-sm py-1.5 md:py-2 px-0.5 sm:px-1 md:px-3"
                   >
@@ -220,7 +220,7 @@ export default function WeeklyPlanSelection() {
                             <div className="relative h-36 sm:h-40 md:h-48 bg-gradient-to-br from-orange-100 to-orange-200">
                               {item.images && item.images.length > 0 && item.images[0] ? (
                                 <img
-                                  src={item.images[0]}
+                                  src={getImageUrl(item.images[0])}
                                   alt={item.name}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
@@ -303,7 +303,7 @@ export default function WeeklyPlanSelection() {
                     const dayTotal = getDayTotal(day);
                     const dayItemCount = Object.values(weekSelection[day]).reduce((a, b) => a + b, 0);
                     const isSkipped = skippedDays.has(day);
-                    
+
                     return (
                       <div key={day} className={`flex justify-between items-center p-1.5 md:p-2 rounded text-sm md:text-base ${isSkipped ? 'opacity-50 line-through' : ''}`}>
                         <div>

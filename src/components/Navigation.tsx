@@ -4,10 +4,9 @@ import { useCart } from '@/hooks/useCart';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  ShoppingCart, 
-  User, 
+import {
+  ShoppingCart,
+  User,
   Menu as MenuIcon,
   Home,
   UtensilsCrossed,
@@ -40,13 +39,7 @@ export default function Navigation() {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .in('role', ['admin', 'super_admin', 'manager']);
-
-        if (!error && data && data.length > 0) {
+        if (['admin', 'super_admin', 'manager'].includes(user.role)) {
           setIsAdmin(true);
         } else {
           setIsAdmin(false);
@@ -72,7 +65,8 @@ export default function Navigation() {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/menu', label: 'Menu', icon: UtensilsCrossed },
-    { href: '/plans', label: 'Plans', icon: Crown },
+    // { href: '/plans', label: 'Plans', icon: Crown },
+    { href: '/about', label: 'About', icon: Star },
   ];
 
   if (!user) {
@@ -85,22 +79,26 @@ export default function Navigation() {
               Morning Food Web
             </span>
           </Link>
-          
+
           <div className="flex items-center space-x-4">
             {navItems.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 to={href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === href ? 'text-primary' : 'text-muted-foreground'
-                }`}
+                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === href ? 'text-primary' : 'text-muted-foreground'
+                  }`}
               >
                 <span className="hidden sm:inline">{label}</span>
                 <Icon className="h-5 w-5 sm:hidden" />
               </Link>
             ))}
+            <Link to="/plans">
+              <Button className="bg-[#F7934C] hover:bg-[#e9833e] text-white hidden sm:flex">
+                Start My Plan
+              </Button>
+            </Link>
             <Link to="/auth">
-              <Button variant="default">Sign In</Button>
+              <Button variant="outline">Sign In</Button>
             </Link>
           </div>
         </div>
@@ -117,20 +115,28 @@ export default function Navigation() {
             Morning Food Web
           </span>
         </Link>
-        
+
         <div className="hidden md:flex items-center space-x-6">
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               to={href}
-              className={`text-sm font-medium transition-colors hover:text-primary flex items-center space-x-1 ${
-                location.pathname === href ? 'text-primary' : 'text-muted-foreground'
-              }`}
+              className={`text-sm font-medium transition-colors hover:text-primary flex items-center space-x-1 ${location.pathname === href ? 'text-primary' : 'text-muted-foreground'
+                }`}
             >
               <Icon className="h-4 w-4" />
               <span>{label}</span>
             </Link>
           ))}
+        </div>
+
+        {/* Call to action for Start My Plan */}
+        <div className="hidden lg:flex items-center mx-4">
+          <Link to="/plans">
+            <Button className="bg-[#F7934C] hover:bg-[#e9833e] text-white font-semibold px-5 rounded-lg shadow-sm hover:shadow transition-all duration-300 hover:scale-105">
+              Start My Plan
+            </Button>
+          </Link>
         </div>
 
         <div className="flex items-center space-x-4">

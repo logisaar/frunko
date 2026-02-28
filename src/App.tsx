@@ -8,6 +8,7 @@ import { CartProvider } from "@/hooks/useCart";
 import Navigation from "@/components/Navigation";
 import MobileNavigation from "@/components/MobileNavigation";
 import AdminAccess from "@/components/AdminAccess";
+import FloatingCartBanner from "@/components/FloatingCartBanner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
@@ -37,6 +38,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<Auth />} />
               <Route path="/home" element={<Home />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/plans" element={<Plans />} />
@@ -51,6 +53,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <FloatingCartBanner />
             <MobileNavigation />
             <AdminAccess />
           </BrowserRouter>

@@ -37,16 +37,16 @@ All colors MUST be HSL.
     --ring: 25 85% 55%;
 
     --radius: 0.75rem;
-    
+
     --food-orange: 25 85% 55%;
     --food-orange-light: 25 85% 65%;
     --food-green: 120 40% 50%;
     --food-red: 0 75% 60%;
     --warm-bg: 35 100% 98%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(25, 85%, 55%), hsl(25, 85%, 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(25, 85%, 55%) 0%, hsl(25, 75%, 45%) 100%);
-    --shadow-warm: 0 4px 20px hsl(25, 85%, 55%, 0.2);
+
+    --gradient-primary: linear-gradient(135deg, hsl(25, 90%, 58%), hsl(25, 90%, 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(25, 95%, 55%) 0%, hsl(15, 85%, 50%) 100%);
+    --shadow-warm: 0 10px 40px -10px hsl(25, 85%, 55%, 0.3), 0 4px 10px -2px hsl(25, 85%, 55%, 0.15);
 
     --sidebar-background: 0 0% 98%;
 
@@ -93,16 +93,16 @@ All colors MUST be HSL.
     --border: 15 20% 20%;
     --input: 15 20% 18%;
     --ring: 25 85% 55%;
-    
+
     --food-orange: 25 85% 55%;
     --food-orange-light: 25 85% 65%;
     --food-green: 120 35% 45%;
     --food-red: 0 70% 55%;
     --warm-bg: 15 25% 8%;
-    
+
     --gradient-primary: linear-gradient(135deg, hsl(25, 85%, 55%), hsl(25, 85%, 45%));
-    --gradient-hero: linear-gradient(135deg, hsl(25, 85%, 55%) 0%, hsl(25, 75%, 35%) 100%);
-    --shadow-warm: 0 4px 20px hsl(25, 85%, 55%, 0.3);
+    --gradient-hero: linear-gradient(135deg, hsl(25, 85%, 55%) 0%, hsl(15, 75%, 40%) 100%);
+    --shadow-warm: 0 10px 40px -10px hsl(25, 85%, 55%, 0.4), 0 4px 10px -2px hsl(25, 85%, 55%, 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -121,72 +121,78 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    /* Use Inter for UI text, fallback to system fonts */
-    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    /* Use Plus Jakarta Sans for UI text, fallback to system fonts */
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    /* Use Merriweather for headings for better readability */
-    font-family: 'Merriweather', ui-serif, Georgia, 'Times New Roman', Times, serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    /* Use Outfit for headings for a modern geometric feel */
+    font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
   }
 }
 
 @layer utilities {
+
   /* Glassmorphism utility */
   .glass {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background: hsl(var(--card) / 0.6);
-    border: 1px solid hsl(var(--border) / 0.4);
-    box-shadow: 0 10px 30px hsl(var(--shadow-warm));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: hsl(var(--card) / 0.7);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 10px 30px -10px hsl(var(--shadow-warm));
   }
-  
+
   /* Mobile-first responsive utilities */
   .mobile-container {
     @apply px-4 mx-auto max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl;
   }
-  
+
   .mobile-card {
     @apply rounded-lg border bg-card text-card-foreground shadow-sm;
   }
-  
+
   .mobile-button {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
   }
-  
+
   /* Safe area for mobile devices */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   /* Touch-friendly sizing */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
-  
+
   /* Mobile navigation spacing */
   .mobile-nav-spacing {
     @apply pb-20 md:pb-0;
   }
-  
+
   /* Smooth scrolling for mobile */
   .smooth-scroll {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Hide scrollbars on mobile */
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }

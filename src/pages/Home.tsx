@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,7 @@ interface Plan {
   price: number;
   description: string;
   frequency: string;
+  is_active: boolean;
 }
 
 export default function Home() {
@@ -55,26 +57,16 @@ export default function Home() {
   const loadData = async () => {
     try {
       // Load featured items
-      const { data: items, error: itemsError } = await supabase
-        .from('items')
-        .select('*')
-        .eq('is_available', true)
-        .limit(6);
-
-      if (itemsError) throw itemsError;
-      setFeaturedItems(items || []);
+      const items = await api.getItems();
+      // Filter available and limit to 6 (this could be done in backend too, but filtering here for now)
+      setFeaturedItems(items.filter((i: FoodItem) => i.is_available).slice(0, 6));
 
       // Load subscription plans
-      const { data: plansData, error: plansError } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('is_active', true);
-
-      if (plansError) throw plansError;
-      setPlans(plansData || []);
+      const plansData = await api.getPlans();
+      setPlans(plansData.filter((p: Plan) => p.is_active));
     } catch (error: any) {
       console.error('Error loading data:', error);
-      
+
       if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
         toast.error('Session expired. Please sign in again.');
         setTimeout(() => {
@@ -102,7 +94,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF7EE] via-[#FFF7EE] to-[#F9E9D2] text-[#3B1F0A] mobile-nav-spacing relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF7EE] via-[#FFF7EE] to-[#F9E9D2] text-[#3B1F0A] mobile-nav-spacing relative overflow-hidden pb-36 md:pb-24">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-32 h-32 bg-[#F7934C] rounded-full blur-3xl"></div>
@@ -110,20 +102,7 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-[#FFF7EE] rounded-full blur-3xl"></div>
       </div>
 
-      {/* ================= Navbar ================= */}
-      <header className="relative z-10 py-6 px-6 flex justify-between items-center bg-transparent backdrop-blur-sm">
-        <h1 className="text-2xl font-bold animate-fade-in">Frunko</h1>
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/menu" className="hover:text-[#F7934C] transition-colors duration-300">Menu</Link>
-          <Link to="/plans" className="hover:text-[#F7934C] transition-colors duration-300">Plans</Link>
-          <Link to="/about" className="hover:text-[#F7934C] transition-colors duration-300">About</Link>
-          <Link to="/plans">
-            <Button className="bg-[#F7934C] hover:bg-[#e9833e] text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-              Start My Plan
-            </Button>
-          </Link>
-        </nav>
-      </header>
+
 
       {/* ================= Hero Section ================= */}
       <section className="relative z-10 bg-transparent py-16 md:py-24">
@@ -258,11 +237,10 @@ export default function Home() {
                   )}
                   <CardHeader className="text-center pb-4 pt-8">
                     <div className="flex items-center justify-center mb-3">
-                      <div className={`p-3 rounded-full transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 ${
-                        plan.frequency === 'daily' ? 'bg-blue-100 text-blue-600' :
+                      <div className={`p-3 rounded-full transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 ${plan.frequency === 'daily' ? 'bg-blue-100 text-blue-600' :
                         plan.frequency === 'weekly' ? 'bg-green-100 text-green-600' :
-                        'bg-gradient-to-r from-[#F7934C] to-[#e9833e] text-white shadow-lg'
-                      }`}>
+                          'bg-gradient-to-r from-[#F7934C] to-[#e9833e] text-white shadow-lg'
+                        }`}>
                         {getFrequencyIcon(plan.frequency)}
                       </div>
                     </div>
@@ -298,11 +276,10 @@ export default function Home() {
                       ))}
                     </div>
                     <Link to="/plans">
-                      <Button className={`w-full font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 group-hover:shadow-[#F7934C]/50 ${
-                        plan.frequency === 'monthly'
-                          ? 'bg-gradient-to-r from-[#F7934C] to-[#e9833e] hover:from-[#e9833e] hover:to-[#d9732a] text-white'
-                          : 'bg-white hover:bg-[#F9E9D2] text-[#3B1F0A] border-2 border-[#F7934C]/30 hover:border-[#F7934C] group-hover:bg-[#F7934C] group-hover:text-white'
-                      }`}>
+                      <Button className={`w-full font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 group-hover:shadow-[#F7934C]/50 ${plan.frequency === 'monthly'
+                        ? 'bg-gradient-to-r from-[#F7934C] to-[#e9833e] hover:from-[#e9833e] hover:to-[#d9732a] text-white'
+                        : 'bg-white hover:bg-[#F9E9D2] text-[#3B1F0A] border-2 border-[#F7934C]/30 hover:border-[#F7934C] group-hover:bg-[#F7934C] group-hover:text-white'
+                        }`}>
                         <Crown className="h-4 w-4 mr-2" />
                         Choose {plan.name}
                       </Button>
@@ -351,7 +328,7 @@ export default function Home() {
                 <div className="aspect-video bg-gradient-to-br from-orange-100 to-orange-200 rounded-t-lg flex items-center justify-center overflow-hidden relative">
                   {item.images && item.images.length > 0 && item.images[0] ? (
                     <img
-                      src={item.images[0]}
+                      src={getImageUrl(item.images[0])}
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
@@ -447,7 +424,7 @@ export default function Home() {
                 <div className="w-full h-64 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center overflow-hidden">
                   {selectedItem.images && selectedItem.images.length > 0 && selectedItem.images[0] ? (
                     <img
-                      src={selectedItem.images[0]}
+                      src={getImageUrl(selectedItem.images[0])}
                       alt={selectedItem.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {

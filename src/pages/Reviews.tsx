@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, MessageSquare } from 'lucide-react';
-import { Database } from '@/integrations/supabase/types';
 
-type Review = Database['public']['Tables']['reviews']['Row'];
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type FoodItem = Database['public']['Tables']['items']['Row'];
-
-interface EnrichedReview extends Review {
-  profiles?: Profile;
-  items?: FoodItem;
+interface EnrichedReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  profiles?: { full_name: string };
+  items?: { name: string };
 }
 
 export default function Reviews() {
@@ -24,28 +23,12 @@ export default function Reviews() {
 
   const loadReviews = async () => {
     try {
-      // Load reviews with user and item details
-      const { data: reviewsData, error: reviewsError } = await supabase
-        .from('reviews')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const reviewsData = await api.getReviews();
 
-      if (reviewsError) throw reviewsError;
-
-      // Fetch profiles and items to join with reviews
-      const userIds = [...new Set(reviewsData?.map(r => r.user_id) || [])];
-      const itemIds = [...new Set(reviewsData?.map(r => r.item_id) || [])];
-
-      const [profilesData, itemsData] = await Promise.all([
-        supabase.from('profiles').select('*').in('user_id', userIds),
-        supabase.from('items').select('*').in('id', itemIds)
-      ]);
-
-      // Join the data manually
-      const enrichedReviews = (reviewsData || []).map(review => ({
+      const enrichedReviews = reviewsData.map((review: any) => ({
         ...review,
-        profiles: profilesData.data?.find(p => p.user_id === review.user_id),
-        items: itemsData.data?.find(i => i.id === review.item_id)
+        profiles: { full_name: review.user?.fullName },
+        items: review.item
       }));
 
       setReviews(enrichedReviews);
@@ -102,9 +85,8 @@ export default function Reviews() {
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            className={`h-4 w-4 ${
-                              star <= review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                            }`}
+                            className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                              }`}
                           />
                         ))}
                         <span className="text-sm text-muted-foreground ml-2">

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface CartItem {
@@ -54,26 +54,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Save coupon separately
   useEffect(() => {
-    try { 
+    try {
       if (coupon) {
-        localStorage.setItem('cart_coupon', JSON.stringify(coupon)); 
+        localStorage.setItem('cart_coupon', JSON.stringify(coupon));
       } else {
         localStorage.removeItem('cart_coupon');
       }
-    } catch {}
+    } catch { }
   }, [coupon]);
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('cart_coupon');
       if (saved) setCoupon(JSON.parse(saved));
-    } catch {}
+    } catch { }
   }, []);
 
   const addToCart = (item: Omit<CartItem, 'id' | 'quantity'>) => {
     setItems(prevItems => {
       const existingItem = prevItems.find(cartItem => cartItem.item_id === item.item_id);
-      
+
       if (existingItem) {
         return prevItems.map(cartItem =>
           cartItem.item_id === item.item_id
@@ -102,7 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromCart(itemId);
       return;
     }
-    
+
     setItems(prevItems =>
       prevItems.map(item =>
         item.id === itemId ? { ...item, quantity } : item
@@ -128,6 +128,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return items.reduce((total, item) => total + item.quantity, 0);
   };
 
+  const applyCoupon = async (code: string) => {
+    if (!code) return false;
+
+    try {
+      const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      const result = await api.validateCoupon(code, subtotal);
+
+      setCoupon({ code: result.code, percent: result.discountPercent });
+      toast.success(`Coupon applied: ${Math.round(result.discountPercent)}% off`);
+      return true;
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to apply coupon');
+      return false;
+    }
+  };
+
+  const removeCoupon = () => {
+    setCoupon(null);
+    try { localStorage.removeItem('cart_coupon'); } catch { }
+    toast('Coupon removed');
+  };
+
   return (
     <CartContext.Provider value={{
       items,
@@ -137,69 +159,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clearCart,
       getTotalPrice,
       getTotalItems,
-      loading
-      ,
-      applyCoupon: async (code: string) => {
-        if (!code) return false;
-        const normalized = code.trim().toUpperCase();
-        
-        try {
-          // Check database for valid coupon
-          const { data: coupon, error } = await supabase
-            .from('coupon_codes')
-            .select('*')
-            .eq('code', normalized)
-            .eq('is_active', true)
-            .single();
-
-          if (error || !coupon) {
-            toast.error('Invalid coupon code');
-            return false;
-          }
-
-          // Check if coupon is still valid
-          const now = new Date();
-          if (coupon.valid_until && new Date(coupon.valid_until) < now) {
-            toast.error('This coupon has expired');
-            return false;
-          }
-
-          // Check usage limit
-          if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
-            toast.error('This coupon has reached its usage limit');
-            return false;
-          }
-
-          // Calculate discount percentage
-          const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
-          let discount = 0;
-          
-          if (coupon.discount_type === 'percentage') {
-            discount = (subtotal * coupon.discount_value) / 100;
-            if (coupon.max_discount) {
-              discount = Math.min(discount, coupon.max_discount);
-            }
-          } else {
-            discount = coupon.discount_value;
-          }
-
-          const discountPercent = subtotal > 0 ? (discount / subtotal) * 100 : 0;
-
-          setCoupon({ code: normalized, percent: discountPercent });
-          toast.success(`Coupon applied: ${Math.round(discountPercent)}% off`);
-          return true;
-        } catch (error) {
-          console.error('Error applying coupon:', error);
-          toast.error('Failed to apply coupon');
-          return false;
-        }
-      },
-      removeCoupon: () => {
-        setCoupon(null);
-        try { localStorage.removeItem('cart_coupon'); } catch {}
-        toast('Coupon removed');
-      },
-      coupon
+      loading,
+      applyCoupon,
+      removeCoupon,
+      coupon,
     }}>
       {children}
     </CartContext.Provider>

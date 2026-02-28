@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Package, 
-  Clock, 
-  ChefHat, 
-  Truck, 
-  CheckCircle, 
+import {
+  Package,
+  Clock,
+  ChefHat,
+  Truck,
+  CheckCircle,
   XCircle,
   ArrowLeft,
   MapPin
@@ -33,20 +34,8 @@ export default function Orders() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            *,
-            items (*)
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setOrders(data || []);
+      const ordersData = await api.getOrders();
+      setOrders(ordersData || []);
     } catch (error) {
       console.error('Error loading orders:', error);
       toast.error('Failed to load orders');
@@ -131,7 +120,7 @@ export default function Orders() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="pt-6">
                     {/* Order Items */}
                     <div className="space-y-3 mb-4">
@@ -140,8 +129,8 @@ export default function Orders() {
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                               {orderItem.items?.images?.[0] ? (
-                                <img 
-                                  src={orderItem.items.images[0]} 
+                                <img
+                                  src={getImageUrl(orderItem.items.images[0])}
                                   alt={orderItem.items.name}
                                   className="w-full h-full object-cover rounded-lg"
                                 />

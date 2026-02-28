@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Database } from '@/integrations/supabase/types';
 
-type OrderStatus = Database['public']['Enums']['order_status'];
+type OrderStatus = "pending" | "preparing" | "out_for_delivery" | "delivered" | "cancelled";
 
 interface OrderStatusManagerProps {
   orderId: string;
@@ -21,18 +20,13 @@ export default function OrderStatusManager({ orderId, currentStatus, onStatusUpd
     setIsUpdating(true);
     try {
       const updateData: any = { status: newStatus };
-      
+
       // Set completed_at when status is delivered
       if (newStatus === 'delivered') {
-        updateData.completed_at = new Date().toISOString();
+        updateData.completedAt = new Date().toISOString();
       }
 
-      const { error } = await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', orderId);
-
-      if (error) throw error;
+      await api.updateOrderStatus(orderId, newStatus);
 
       onStatusUpdate(newStatus);
       toast.success(`Order status updated to ${newStatus.replace('_', ' ')}`);

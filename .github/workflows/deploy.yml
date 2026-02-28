@@ -1,0 +1,43 @@
+name: Deploy Frunko to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            export PATH=$PATH:/usr/local/bin:/usr/bin
+            cd ~/frunko-app
+            
+            # If the repo isn't cloned yet, clone it
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/logisaar/frunko.git .
+            else
+              # Hard reset to discard any local changes and pull the latest
+              git fetch --all
+              git reset --hard origin/main
+              git pull origin main
+            fi
+            
+            # Ensure .env is present (it should be manually created on the VPS securely)
+            if [ ! -f ".env" ]; then
+              echo "Error: .env file is missing on the server!"
+              exit 1
+            fi
+            
+            # Rebuild and restart the containers in detached mode
+            docker-compose up -d --build
+            
+            # Clean up old unused images to save disk space
+            docker image prune -f

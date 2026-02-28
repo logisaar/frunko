@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment Variables
+.env
+.env.local
+server/.env
+client_secret_*.json
+
+# Deployment Guide
+VPS_DEPLOYMENT_GUIDE.md

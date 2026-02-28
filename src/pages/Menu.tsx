@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getImageUrl } from '@/lib/utils';
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,10 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Search, Star, Leaf, Plus, ChefHat } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
-import { Database } from "@/integrations/supabase/types";
-
-type FoodItem = Database["public"]["Tables"]["items"]["Row"];
-type FoodCategory = Database["public"]["Enums"]["food_category"];
+import { Item as FoodItem } from '@/types';
+type FoodCategory = "breakfast" | "lunch" | "dinner" | "snacks" | "beverages" | "desserts" | "frunko_bowls";
 
 export default function Menu() {
   const [items, setItems] = useState<FoodItem[]>([]);
@@ -40,14 +40,8 @@ export default function Menu() {
 
   const loadItems = async () => {
     try {
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .eq("is_available", true)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setItems(data || []);
+      const itemsData = await api.getItems(true);
+      setItems(itemsData);
     } catch (error: any) {
       console.error("Error loading items:", error);
       if (error.code === "PGRST301" || error.message?.includes("JWT")) {
@@ -61,6 +55,17 @@ export default function Menu() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const groupedItems = filteredItems.reduce((acc, item) => {
+    const cat = item.category || 'other';
+    if (!acc[cat]) { acc[cat] = []; }
+    acc[cat].push(item);
+    return acc;
+  }, {} as Record<string, FoodItem[]>);
+
+  const formatCategoryName = (cat: string) => {
+    return cat.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
   const filterItems = () => {
@@ -103,7 +108,7 @@ export default function Menu() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF7EE] pb-20">
+    <div className="min-h-screen bg-[#FFF7EE] pb-36 md:pb-24">
       {/* Logo Header */}
       <div className="p-6 flex flex-col items-center justify-center">
         <img
@@ -131,158 +136,64 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Promo Banners */}
-      <div className="px-4 overflow-x-auto flex gap-4 pb-4 hide-scrollbar">
-         <img
-          src="/assets/mix.png"
-          alt="Hostel Combos Save More"
-          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
-        />
-        <img
-          src="/assets/veggie salad.png"
-          alt="Daily Fresh Bowls"
-          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
-        />
-        <img
-          src="/assets/banana_shake.png"
-          alt="banana-shake"
-          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
-        />
-        <img
-          src="/assets/mix_fruitboul_with-curd.png"
-          alt="Hydrate & Energize"
-          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
-        />
-        <img
-          src="/assets/chocolate oats.png"
-          alt="Hostel Combos Save More"
-          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
-        />
-        <img
-          src="/assets/chia.png"
-          alt="Hostel Combos Save More"
-          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
-        />
-        <img
-          src="/assets/mix_fruit_bowl.png"
-          alt="Hostel Combos Save More"
-          className="w-64 h-40 rounded-xl object-cover flex-shrink-0"
-        />
-      </div>
 
-      {/* Fruits A–Z */}
-      <div className="px-4 mt-4">
-        <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">Natural Juices & Smoothies</h3>
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
-          {filteredItems.slice(0, 5).map((item) => (
-            <div
-              key={item.id}
-              className="flex flex-col items-center text-center flex-shrink-0 cursor-pointer"
-              onClick={() => openDialog(item)}
-            >
-              <div className="w-16 h-16 rounded-full bg-white shadow flex items-center justify-center overflow-hidden">
-                {item.images && item.images.length > 0 && item.images[0] ? (
-                  <img
-                    src={item.images[0]}
-                    alt={item.name}
-                    className="object-cover w-full h-full"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.innerHTML = '<svg class="text-[#6E4E29] h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/></svg>';
-                      }
-                    }}
-                  />
-                ) : (
-                  <ChefHat className="text-[#6E4E29] h-6 w-6" />
-                )}
-              </div>
-              <p className="text-sm font-medium mt-2 text-[#3B1F0A]">
-                {item.name}
-              </p>
-              <p className="text-xs text-[#6E4E29]">₹{item.price}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Juices & Smoothies */}
-      <div className="px-4 mt-2">
-        <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">
-          Mix & Munch Fruits
-        </h3>
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
-          {filteredItems.slice(5, 10).map((item) => (
-            <Card
-              key={item.id}
-              className="w-40 flex-shrink-0 rounded-xl overflow-hidden bg-white shadow cursor-pointer"
-              onClick={() => openDialog(item)}
-            >
-              <div className="h-32 overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                {item.images && item.images.length > 0 && item.images[0] ? (
-                  <img
-                    src={item.images[0]}
-                    alt={item.name}
-                    className="object-cover w-full h-full"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <ChefHat className="h-12 w-12 text-orange-400" />
-                )}
+      {/* Dynamic Category Items Render */}
+      {Object.entries(groupedItems).map(([category, catItems]) => (
+        <div key={category} className="px-4 mt-6">
+          <h3 className="text-xl font-bold text-[#3B1F0A] mb-4">
+            {formatCategoryName(category)}
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-4">
+            {catItems.map((item, index) => (
+              <div
+                key={item.id}
+                className={`glass rounded-2xl overflow-hidden hover:shadow-xl cursor-pointer transition-all duration-300 hover:-translate-y-2 group ${!item.is_available ? 'opacity-80' : ''}`}
+                style={{ animationDelay: `${index * 0.05}s` }}
+                onClick={() => openDialog(item)}
+              >
+                <div className="h-32 sm:h-40 overflow-hidden bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center relative group-hover:scale-[1.02] transition-transform duration-500">
+                  {item.images && item.images.length > 0 && item.images[0] ? (
+                    <img
+                      src={getImageUrl(item.images[0])}
+                      alt={item.name}
+                      className={`object-cover w-full h-full ${!item.is_available ? 'grayscale' : ''}`}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <ChefHat className="h-10 w-10 text-orange-300" />
+                  )}
+                  {/* Veg/Non-Veg indicator */}
+                  <div className="absolute top-2 right-2 bg-white/90 p-1 rounded-sm shadow-sm backdrop-blur-sm flex gap-1 items-center">
+                    <div className={`w-3 h-3 rounded-full ${item.is_veg ? 'bg-green-500' : 'bg-red-500'} `} />
+                  </div>
+                  {/* Out of stock overlay element if unavailable */}
+                  {!item.is_available && (
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center backdrop-blur-[1px]">
+                      <span className="text-white font-bold text-sm bg-black/60 px-3 py-1 rounded-full border border-white/20">Out of Stock</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="font-semibold text-sm text-[#3B1F0A] line-clamp-2 min-h-[40px] leading-tight mb-1">
+                    {item.name}
+                  </p>
+                  <p className="text-sm font-bold text-[#F7934C]">₹{item.price}</p>
+                </div>
               </div>
-              <div className="p-3">
-                <p className="font-semibold text-sm text-[#3B1F0A] line-clamp-1">
-                  {item.name}
-                </p>
-                <p className="text-xs text-[#6E4E29] mb-2">₹{item.price}</p>
-              </div>
-            </Card>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      ))}
 
-      {/* Popular Items */}
-      <div className="px-4 mt-4">
-        <h3 className="text-lg font-semibold text-[#3B1F0A] mb-3">
-          Popular Items
-        </h3>
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
-          {filteredItems.slice(10, 16).map((item) => (
-            <Card
-              key={item.id}
-              className="w-36 flex-shrink-0 rounded-xl bg-white shadow cursor-pointer"
-              onClick={() => openDialog(item)}
-            >
-              <div className="w-full h-28 bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center rounded-t-xl overflow-hidden">
-                {item.images && item.images.length > 0 && item.images[0] ? (
-                  <img
-                    src={item.images[0]}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <ChefHat className="h-12 w-12 text-orange-400" />
-                )}
-              </div>
-              <div className="p-2">
-                <p className="font-semibold text-sm text-[#3B1F0A] line-clamp-1">
-                  {item.name}
-                </p>
-                <p className="text-xs text-[#6E4E29] mb-2">₹{item.price}</p>
-              </div>
-            </Card>
-          ))}
+      {filteredItems.length === 0 && (
+        <div className="px-4 py-12 text-center">
+          <p className="text-[#6E4E29]">No items found.</p>
         </div>
-      </div>
+      )}
 
       {/* Product Details Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -297,8 +208,7 @@ export default function Menu() {
             <div className="flex justify-center">
               {selectedItem?.images && selectedItem.images.length > 0 && selectedItem.images[0] ? (
                 <img
-                  src={selectedItem.images[0]}
-                  alt={selectedItem.name}
+                  src={getImageUrl(selectedItem.images[0])}
                   className="w-48 h-48 object-cover rounded-lg"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -338,13 +248,22 @@ export default function Menu() {
             </div>
 
             {/* Add to Cart Button */}
-            <Button
-              onClick={() => selectedItem && handleAddToCart(selectedItem)}
-              className="w-full bg-[#F7934C] hover:bg-[#e9833e] text-white py-3 rounded-lg font-semibold"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add to Cart
-            </Button>
+            {selectedItem?.is_available ? (
+              <Button
+                onClick={() => selectedItem && handleAddToCart(selectedItem)}
+                className="w-full bg-[#F7934C] hover:bg-[#e9833e] text-white py-3 rounded-lg font-semibold"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add to Cart
+              </Button>
+            ) : (
+              <Button
+                disabled
+                className="w-full bg-gray-300 hover:bg-gray-300 text-gray-500 py-3 rounded-lg font-semibold cursor-not-allowed opacity-80"
+              >
+                Out of Stock
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

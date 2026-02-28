@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  user
+  delivery
+  super_admin
+  manager
+  support
+}
+
+enum OrderStatus {
+  pending
+  preparing
+  out_for_delivery
+  delivered
+  cancelled
+}
+
+enum SubscriptionStatus {
+  active
+  paused
+  cancelled
+  expired
+}
+
+enum SupportTicketStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+enum FoodCategory {
+  breakfast
+  lunch
+  dinner
+  snacks
+  beverages
+  desserts
+}
+
+enum PlanFrequency {
+  daily
+  weekly
+  monthly
+}
+
+enum DiscountType {
+  percentage
+  fixed
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String?
+  fullName      String    @map("full_name")
+  phone         String?
+  address       String?
+  role          UserRole  @default(user)
+  googleId      String?   @unique @map("google_id")
+  avatarUrl     String?   @map("avatar_url")
+  lastLogin     DateTime? @map("last_login")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  orders         Order[]
+  subscriptions  Subscription[]
+  reviews        Review[]
+  supportTickets SupportTicket[] @relation("UserTickets")
+  adminTickets   SupportTicket[] @relation("AdminTickets")
+  sessions       UserSession[]
+  couponUsages   CouponUsage[]
+  addresses      Address[]
+
+  @@map("users")
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  label       String   @default("Home")
+  fullAddress String   @map("full_address")
+  latitude    Float?
+  longitude   Float?
+  landmark    String?
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model Item {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal      @db.Decimal(10, 2)
+  category    FoodCategory
+  images      String[]     @default([])
+  isVeg       Boolean      @default(true) @map("is_veg")
+  isAvailable Boolean      @default(true) @map("is_available")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  @@map("items")
+}
+
+model Plan {
+  id          String        @id @default(uuid())
+  name        String
+  frequency   PlanFrequency
+  price       Decimal       @db.Decimal(10, 2)
+  description String?
+  isActive    Boolean       @default(true) @map("is_active")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  userId                 String             @map("user_id")
+  planId                 String             @map("plan_id")
+  startDate              DateTime           @default(now()) @map("start_date") @db.Date
+  endDate                DateTime?          @map("end_date") @db.Date
+  status                 SubscriptionStatus @default(active)
+  paymentProvider        String?            @map("payment_provider")
+  providerSubscriptionId String?            @map("provider_subscription_id")
+  createdAt              DateTime           @default(now()) @map("created_at")
+  updatedAt              DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Order {
+  id                   String      @id @default(uuid())
+  userId               String      @map("user_id")
+  totalAmount          Decimal     @db.Decimal(10, 2) @map("total_amount")
+  status               OrderStatus @default(pending)
+  deliveryAddress      String      @map("delivery_address")
+  qrCode               String?     @unique @map("qr_code")
+  couponCode           String?     @map("coupon_code")
+  discountAmount       Decimal?    @db.Decimal(10, 2) @map("discount_amount")
+  expectedDeliveryTime DateTime?   @map("expected_delivery_time")
+  completedAt          DateTime?   @map("completed_at")
+  paymentStatus        String?     @default("pending") @map("payment_status")
+  paymentMethod        String?     @map("payment_method")
+  paytmOrderId         String?     @unique @map("paytm_order_id")
+  paytmTxnId           String?     @map("paytm_txn_id")
+  paidAt               DateTime?   @map("paid_at")
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @updatedAt @map("updated_at")
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  itemId    String   @map("item_id")
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  item  Item  @relation(fields: [itemId], references: [id])
+
+  @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  itemId    String   @map("item_id")
+  orderId   String?  @map("order_id")
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item  Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId, orderId])
+  @@map("reviews")
+}
+
+model SupportTicket {
+  id          String              @id @default(uuid())
+  userId      String              @map("user_id")
+  subject     String
+  description String
+  status      SupportTicketStatus @default(open)
+  adminId     String?             @map("admin_id")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  user  User  @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  admin User? @relation("AdminTickets", fields: [adminId], references: [id])
+
+  @@map("support_tickets")
+}
+
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  event     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model CouponCode {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  discountType  DiscountType @map("discount_type")
+  discountValue Decimal      @db.Decimal(10, 2) @map("discount_value")
+  maxDiscount   Decimal?     @db.Decimal(10, 2) @map("max_discount")
+  minOrderValue Decimal?     @db.Decimal(10, 2) @map("min_order_value")
+  usageLimit    Int?         @map("usage_limit")
+  usedCount     Int          @default(0) @map("used_count")
+  isActive      Boolean      @default(true) @map("is_active")
+  validFrom     DateTime?    @map("valid_from")
+  validUntil    DateTime?    @map("valid_until")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  usages CouponUsage[]
+
+  @@map("coupon_codes")
+}
+
+model CouponUsage {
+  id        String   @id @default(uuid())
+  couponId  String   @map("coupon_id")
+  userId    String   @map("user_id")
+  orderId   String?  @map("order_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  coupon CouponCode @relation(fields: [couponId], references: [id])
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("coupon_usages")
+}

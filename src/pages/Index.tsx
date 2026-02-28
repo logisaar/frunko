@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import Home from './Home';
 
 const Index = () => {
@@ -18,13 +17,7 @@ const Index = () => {
 
       try {
         // Check if user has admin role
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .in('role', ['admin', 'super_admin', 'manager']);
-
-        if (!error && data && data.length > 0) {
+        if (['admin', 'super_admin', 'manager'].includes(user.role)) {
           setIsAdmin(true);
         }
       } catch (error) {

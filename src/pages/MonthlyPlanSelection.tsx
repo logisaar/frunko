@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,14 +60,13 @@ export default function MonthlyPlanSelection() {
 
   const fetchMenuItems = async () => {
     try {
-      const { data, error } = await supabase
-        .from('items')
-        .select('*')
-        .eq('is_available', true)
-        .order('name');
+      const data = await api.getItems();
+      // Map camelCase to snake_case for the frontend type
+      const mappedData = data
+        .filter(item => item.isAvailable)
+        .map(item => ({ ...item, is_veg: item.isVeg }));
 
-      if (error) throw error;
-      setMenuItems(data || []);
+      setMenuItems(mappedData || []);
     } catch (error) {
       console.error('Error fetching menu items:', error);
       toast.error('Failed to load menu items');
@@ -79,7 +79,7 @@ export default function MonthlyPlanSelection() {
     setMonthSelection(prev => {
       const currentQty = prev[week][day][itemId] || 0;
       const newQty = Math.max(0, currentQty + change);
-      
+
       return {
         ...prev,
         [week]: {
@@ -177,7 +177,7 @@ export default function MonthlyPlanSelection() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-16 md:pt-20 pb-24 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-16 md:pt-20 pb-36 md:pb-24">
       <div className="container mx-auto px-3 md:px-4">
         <div className="mb-4 md:mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mb-2">
@@ -258,7 +258,7 @@ export default function MonthlyPlanSelection() {
                                     <div className="relative h-36 sm:h-40 md:h-48 bg-gradient-to-br from-orange-100 to-orange-200">
                                       {item.images && item.images.length > 0 && item.images[0] ? (
                                         <img
-                                          src={item.images[0]}
+                                          src={getImageUrl(item.images[0])}
                                           alt={item.name}
                                           className="w-full h-full object-cover"
                                           onError={(e) => {

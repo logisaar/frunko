@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Database } from '@/integrations/supabase/types';
-
-type Plan = Database['public']['Tables']['plans']['Row'];
+import { Plan } from '@/types';
 
 export default function Plans() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -31,17 +29,15 @@ export default function Plans() {
 
   const loadPlans = async () => {
     try {
-      const { data, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('price', { ascending: true });
+      const plansData = await api.getPlans();
+      // Filter for active plans and sort them by price ascending
+      // Note: the backend `/plans` route returns them all, we can filter/sort here for now
+      const activePlans = plansData.filter((p: Plan) => p.is_active).sort((a: Plan, b: Plan) => a.price - b.price);
 
-      if (error) throw error;
-      setPlans(data || []);
+      setPlans(activePlans);
     } catch (error: any) {
       console.error('Error loading plans:', error);
-      
+
       // Handle JWT expired error  
       if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
         toast.error('Session expired. Please sign in again.');
@@ -58,8 +54,8 @@ export default function Plans() {
 
   const handleSelectPlan = async (plan: Plan) => {
     // Check if user is logged in
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const { user } = await api.getSession();
+
     if (!user) {
       toast.error('Please sign in to subscribe');
       navigate('/auth');
@@ -144,16 +140,15 @@ export default function Plans() {
       </div>
 
       {/* Plans */}
-      <div className="px-4 pb-8">
+      <div className="px-4 pb-36 md:pb-24">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
-            <Card
+            <div
               key={plan.id}
-              className={`relative overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in group ${
-                plan.frequency === 'monthly'
-                  ? 'bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 border-primary/30 shadow-lg'
-                  : 'bg-white/80 backdrop-blur-sm border-gray-200/50 hover:border-primary/20'
-              }`}
+              className={`relative overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-2 group rounded-2xl ${plan.frequency === 'monthly'
+                ? 'bg-gradient-to-br from-[#FFF5ED] to-white border border-[#F7934C]/40 shadow-xl shadow-[#F7934C]/10'
+                : 'glass hover:shadow-xl'
+                }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {plan.frequency === 'monthly' && (
@@ -165,11 +160,10 @@ export default function Plans() {
 
               <CardHeader className="text-center pb-4 pt-8">
                 <div className="flex items-center justify-center mb-4">
-                  <div className={`p-3 rounded-full ${
-                    plan.frequency === 'daily' ? 'bg-blue-100 text-blue-600' :
+                  <div className={`p-3 rounded-full ${plan.frequency === 'daily' ? 'bg-blue-100 text-blue-600' :
                     plan.frequency === 'weekly' ? 'bg-green-100 text-green-600' :
-                    'bg-gradient-to-r from-primary to-secondary text-white'
-                  } transition-transform group-hover:scale-110`}>
+                      'bg-gradient-to-r from-primary to-secondary text-white'
+                    } transition-transform group-hover:scale-110`}>
                     {getFrequencyIcon(plan.frequency)}
                   </div>
                 </div>
@@ -262,18 +256,17 @@ export default function Plans() {
 
                 {/* Action Button */}
                 <Button
-                  className={`w-full h-12 text-lg font-semibold transition-all duration-300 ${
-                    plan.frequency === 'monthly'
-                      ? 'bg-orange-500 hover:from-primary/90 hover:to-seconedary/90 shadow-lg hover:shadow-xl transform hover:scale-105'
-                      : 'hover:bg-primary hover:text-white border-2 border-primary hover:border-primary'
-                  }`}
+                  className={`w-full h-12 text-lg font-semibold transition-all duration-300 ${plan.frequency === 'monthly'
+                    ? 'bg-orange-500 hover:from-primary/90 hover:to-seconedary/90 shadow-lg hover:shadow-xl transform hover:scale-105'
+                    : 'hover:bg-primary hover:text-white border-2 border-primary hover:border-primary'
+                    }`}
                   onClick={() => handleSelectPlan(plan)}
                 >
                   <Crown className="h-5 w-5 mr-2" />
                   Choose {plan.name}
                 </Button>
               </CardContent>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
