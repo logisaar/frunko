@@ -1,5 +1,7 @@
 # Backend Dockerfile
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
+
+RUN apt-get update -y && apt-get install -y openssl
 
 WORKDIR /app
 
@@ -14,7 +16,9 @@ RUN npx prisma generate
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -25,4 +29,5 @@ COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3001
 
-CMD ["node", "dist/main.js"]
+# Push schema to DB then start the server
+CMD npx prisma db push --skip-generate && node dist/main.js
