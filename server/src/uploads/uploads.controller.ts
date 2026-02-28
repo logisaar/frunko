@@ -40,7 +40,7 @@ export class UploadsController {
                 }
                 cb(null, true);
             },
-            limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+            limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
         }),
     )
     async uploadItemImages(@UploadedFiles() files: Express.Multer.File[]) {
