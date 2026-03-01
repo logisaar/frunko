@@ -172,9 +172,14 @@ export default function AdminDashboard() {
 
       setItems(itemsData || []);
 
-      // Includes all orders except completely abandoned checkout sessions (pending status with no txn attempt)
+      // Only show successfully paid or manually confirmed orders to the admin.
+      // Hide abandoned checkouts (pending payment) or failed/cancelled payment attempts.
       const validOrders = (ordersData || [])
-        .filter((order: any) => order.status !== 'pending' || order.payment_status)
+        .filter((order: any) => {
+          const isPaid = order.payment_status === 'paid' || order.paymentStatus === 'paid';
+          const isManuallyConfirmed = ['preparing', 'out_for_delivery', 'delivered'].includes(order.status);
+          return isPaid || isManuallyConfirmed;
+        })
         .sort((a: any, b: any) => {
           const dateA = new Date(a.created_at || a.createdAt || 0).getTime();
           const dateB = new Date(b.created_at || b.createdAt || 0).getTime();
