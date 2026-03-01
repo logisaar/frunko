@@ -320,9 +320,11 @@ export default function Cart() {
 
     setIsCheckingOut(true);
     try {
+      const finalTotalAmount = Number(total.toFixed(2));
+
       // 1. Create the order
       const orderData = await api.createOrder({
-        totalAmount: total,
+        totalAmount: finalTotalAmount,
         deliveryAddress: deliveryAddressText,
         couponCode: appliedCoupon?.code || undefined,
         discountAmount: discount || undefined,
@@ -338,7 +340,7 @@ export default function Cart() {
       // 2. Initiate Paytm transaction
       const paytmData = await api.initiatePaytmPayment(
         orderData.id,
-        total,
+        finalTotalAmount,
         user?.email,
         user?.phone,
       );

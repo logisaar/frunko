@@ -37,7 +37,7 @@ export class PaytmService {
             orderId: paytmOrderId,
             callbackUrl: `${backendUrl}/api/paytm/callback`,
             txnAmount: {
-                value: parseFloat(amount.toString()).toFixed(2),
+                value: Number(amount).toFixed(2),
                 currency: 'INR',
             },
             userInfo: {
@@ -59,7 +59,8 @@ export class PaytmService {
 
         const paytmUrl = `https://secure.paytmpayments.com/theia/api/v1/initiateTransaction?mid=${this.mid}&orderId=${paytmOrderId}`;
 
-        this.logger.log(`Initiating Paytm txn for order ${orderId} → paytmOrderId: ${paytmOrderId}`);
+        this.logger.log(`Initiating Paytm txn for order ${orderId} → paytmOrderId: ${paytmOrderId}, Amount: ${Number(amount).toFixed(2)}`);
+        this.logger.debug(`Paytm Payload: ${JSON.stringify(paytmBody)}`);
 
         const response = await fetch(paytmUrl, {
             method: 'POST',
@@ -88,7 +89,7 @@ export class PaytmService {
             orderId: paytmOrderId,
             txnToken: data.body.txnToken,
             mid: this.mid,
-            amount: parseFloat(amount.toString()).toFixed(2),
+            amount: Number(amount).toFixed(2),
         };
     }
 
