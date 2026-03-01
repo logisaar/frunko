@@ -37,7 +37,8 @@ jobs:
             fi
             
             # Rebuild and restart the containers in detached mode
-            docker-compose up -d --build
+            docker compose build --no-cache
+            docker compose up -d
             
             # Clean up old unused images to save disk space
             docker image prune -f
