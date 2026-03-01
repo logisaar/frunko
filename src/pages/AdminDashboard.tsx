@@ -89,6 +89,7 @@ export default function AdminDashboard() {
   const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
   const [subscriptionToDelete, setSubscriptionToDelete] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   // Item form
   const [itemForm, setItemForm] = useState({
@@ -1231,19 +1232,24 @@ export default function AdminDashboard() {
                             type="file"
                             accept="image/*"
                             multiple
+                            disabled={isUploadingImages}
                             onChange={async (e) => {
                               if (!e.target.files?.length) return;
+                              setIsUploadingImages(true);
                               try {
                                 const res = await api.uploadItemImages(e.target.files);
                                 setItemForm(prev => ({ ...prev, images: [...prev.images, ...res.urls] }));
                                 toast.success('Images uploaded!');
                               } catch (err: any) {
                                 toast.error(err.message || 'Upload failed');
+                              } finally {
+                                setIsUploadingImages(false);
                               }
                               e.target.value = ''; // reset input
                             }}
                             className="cursor-pointer"
                           />
+                          {isUploadingImages && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>}
                         </div>
                       </div>
                       <div className="flex items-center space-x-4">
@@ -1265,9 +1271,18 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button onClick={handleSaveItem} className="flex-1">
-                          <Save className="h-4 w-4 mr-2" />
-                          {editingItem ? 'Update' : 'Create'}
+                        <Button onClick={handleSaveItem} className="flex-1" disabled={isUploadingImages}>
+                          {isUploadingImages ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-2" />
+                              {editingItem ? 'Update' : 'Create'}
+                            </>
+                          )}
                         </Button>
                         <Button variant="outline" onClick={() => setShowItemDialog(false)}>
                           <X className="h-4 w-4" />
