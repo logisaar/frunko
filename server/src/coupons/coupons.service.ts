@@ -27,6 +27,7 @@ export class CouponsService {
         minOrderValue: dto.minOrderValue,
         usageLimit: dto.usageLimit,
         isActive: dto.isActive ?? true,
+        freeDelivery: dto.freeDelivery ?? false,
         validFrom: dto.validFrom ? new Date(dto.validFrom) : null,
         validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
       },
@@ -83,6 +84,7 @@ export class CouponsService {
       discount: Math.round(discount * 100) / 100,
       discountPercent: Math.round(discountPercent * 100) / 100,
       finalAmount: Math.round((subtotal - discount) * 100) / 100,
+      freeDelivery: coupon.freeDelivery,
     };
   }
 
@@ -104,6 +106,7 @@ export class CouponsService {
     if (dto.minOrderValue !== undefined) data.minOrderValue = dto.minOrderValue;
     if (dto.usageLimit !== undefined) data.usageLimit = dto.usageLimit;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (dto.freeDelivery !== undefined) data.freeDelivery = dto.freeDelivery;
     if (dto.validFrom !== undefined) data.validFrom = dto.validFrom ? new Date(dto.validFrom) : null;
     if (dto.validUntil !== undefined) data.validUntil = dto.validUntil ? new Date(dto.validUntil) : null;
 

@@ -129,7 +129,8 @@ export default function AdminDashboard() {
     max_discount: '',
     usage_limit: '',
     valid_until: '',
-    is_active: true
+    is_active: true,
+    free_delivery: false
   });
 
   // Subscription form
@@ -417,12 +418,22 @@ export default function AdminDashboard() {
         usage_limit: couponForm.usage_limit ? parseInt(couponForm.usage_limit) : null,
         valid_until: couponForm.valid_until || null,
         is_active: couponForm.is_active,
+        free_delivery: couponForm.free_delivery,
         created_by: user!.id
       };
 
       if (editingCoupon) {
-        // Simulated update
-        toast.info('Coupon update simulated');
+        await api.updateCoupon(editingCoupon.id, {
+          code: couponData.code,
+          discountType: couponData.discount_type,
+          discountValue: couponData.discount_value,
+          minOrderValue: couponData.min_order_value,
+          maxDiscount: couponData.max_discount || undefined,
+          usageLimit: couponData.usage_limit || undefined,
+          validUntil: couponData.valid_until || undefined,
+          isActive: couponData.is_active,
+          freeDelivery: couponData.free_delivery
+        });
         toast.success('Coupon updated successfully');
       } else {
         await api.createCoupon({
@@ -433,7 +444,8 @@ export default function AdminDashboard() {
           maxDiscount: couponData.max_discount || undefined,
           usageLimit: couponData.usage_limit || undefined,
           validUntil: couponData.valid_until || undefined,
-          isActive: couponData.is_active
+          isActive: couponData.is_active,
+          freeDelivery: couponData.free_delivery
         });
         toast.success('Coupon created successfully');
       }
@@ -559,7 +571,8 @@ export default function AdminDashboard() {
       max_discount: '',
       usage_limit: '',
       valid_until: '',
-      is_active: true
+      is_active: true,
+      free_delivery: false
     });
   };
 
@@ -1771,6 +1784,14 @@ export default function AdminDashboard() {
                           className="h-4 w-4"
                         />
                         <Label htmlFor="is-active">Active</Label>
+                        <input
+                          type="checkbox"
+                          id="free-delivery"
+                          checked={couponForm.free_delivery}
+                          onChange={(e) => setCouponForm(prev => ({ ...prev, free_delivery: e.target.checked }))}
+                          className="h-4 w-4 ml-6"
+                        />
+                        <Label htmlFor="free-delivery">Free Delivery</Label>
                       </div>
                       <div className="flex space-x-2 md:col-span-2 pt-2">
                         <Button onClick={handleSaveCoupon} className="flex-1">
@@ -1817,7 +1838,8 @@ export default function AdminDashboard() {
                               max_discount: coupon.max_discount?.toString() || '',
                               usage_limit: coupon.usage_limit?.toString() || '',
                               valid_until: coupon.valid_until || '',
-                              is_active: coupon.is_active
+                              is_active: coupon.is_active,
+                              free_delivery: coupon.free_delivery || false
                             });
                             setShowCouponDialog(true);
                           }}>

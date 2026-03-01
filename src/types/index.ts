@@ -64,6 +64,7 @@ export interface Coupon {
     discount_value: number;
     min_order_value: number;
     is_active: boolean;
+    free_delivery?: boolean;
     max_discount?: number | null;
     usage_limit?: number | null;
     used_count?: number;

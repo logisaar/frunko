@@ -295,6 +295,7 @@ class ApiClient {
             discount: number;
             discountPercent: number;
             finalAmount: number;
+            freeDelivery: boolean;
         }>('/coupons/validate', {
             method: 'POST',
             body: JSON.stringify({ code, subtotal }),
@@ -302,7 +303,20 @@ class ApiClient {
     }
 
     async getCoupons() {
-        return this.request<any[]>('/coupons');
+        const coupons = await this.request<any[]>('/coupons');
+        return coupons.map(c => ({
+            ...c,
+            is_active: c.isActive,
+            discount_type: c.discountType,
+            discount_value: c.discountValue,
+            max_discount: c.maxDiscount,
+            min_order_value: c.minOrderValue,
+            usage_limit: c.usageLimit,
+            used_count: c.usedCount,
+            valid_until: c.validUntil,
+            created_at: c.createdAt,
+            free_delivery: c.freeDelivery
+        }));
     }
 
     async createCoupon(data: any) {

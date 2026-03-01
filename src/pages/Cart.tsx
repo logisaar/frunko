@@ -307,7 +307,7 @@ export default function Cart() {
   const subtotal = getTotalPrice();
   const discount = calculateDiscount();
   const tax = Math.round((subtotal - discount) * 0.05);
-  const deliveryFee = subtotal > 500 ? 0 : 30;
+  const deliveryFee = subtotal > 500 || appliedCoupon?.freeDelivery ? 0 : 30;
   const total = subtotal - discount + tax + deliveryFee;
 
   const selectedAddress = savedAddresses.find(a => a.id === selectedAddressId);
@@ -774,7 +774,9 @@ export default function Cart() {
                   </span>
                 </div>
                 {deliveryFee === 0 && (
-                  <p className="text-[10px] text-green-600 text-right">Free delivery on orders above ₹500!</p>
+                  <p className="text-[10px] text-green-600 text-right">
+                    {subtotal > 500 ? 'Free delivery on orders above ₹500!' : appliedCoupon?.freeDelivery ? 'Free delivery applied via coupon!' : ''}
+                  </p>
                 )}
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>To Pay</span>

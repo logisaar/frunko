@@ -248,6 +248,7 @@ model CouponCode {
   minOrderValue Decimal?     @db.Decimal(10, 2) @map("min_order_value")
   usageLimit    Int?         @map("usage_limit")
   usedCount     Int          @default(0) @map("used_count")
+  freeDelivery  Boolean      @default(false) @map("free_delivery")
   isActive      Boolean      @default(true) @map("is_active")
   validFrom     DateTime?    @map("valid_from")
   validUntil    DateTime?    @map("valid_until")
