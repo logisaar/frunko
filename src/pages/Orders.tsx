@@ -35,7 +35,14 @@ export default function Orders() {
 
     try {
       const ordersData = await api.getOrders();
-      setOrders(ordersData || []);
+
+      // Filter out pending/unpaid checkout attempts from the user's order history
+      const validOrders = (ordersData || []).filter((order: any) =>
+        order.payment_status === 'paid' ||
+        ['preparing', 'out_for_delivery', 'delivered'].includes(order.status)
+      );
+
+      setOrders(validOrders);
     } catch (error) {
       console.error('Error loading orders:', error);
       toast.error('Failed to load orders');

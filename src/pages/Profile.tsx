@@ -107,7 +107,12 @@ export default function Profile() {
       // Load orders via backend
       try {
         const ordersData = await api.getOrders();
-        setOrders(ordersData || []);
+        // Filter out pending/unpaid checkout attempts
+        const validOrders = (ordersData || []).filter((order: any) =>
+          order.payment_status === 'paid' ||
+          ['preparing', 'out_for_delivery', 'delivered'].includes(order.status)
+        );
+        setOrders(validOrders);
       } catch (e) {
         console.error('Error fetching orders', e);
       }

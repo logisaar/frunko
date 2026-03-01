@@ -128,13 +128,10 @@ export class PaytmService {
 
             return { success: true, paytmOrderId, txnId };
         } else {
-            // Payment failed
-            await this.prisma.order.updateMany({
+            // Payment failed or was cancelled by user - delete the temporary order entirely
+            // so it doesn't clutter the user's order history or the database.
+            await this.prisma.order.deleteMany({
                 where: { paytmOrderId },
-                data: {
-                    paymentStatus: 'failed',
-                    paytmTxnId: txnId || null,
-                },
             });
 
             return { success: false, paytmOrderId, status };
