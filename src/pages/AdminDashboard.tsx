@@ -1249,7 +1249,12 @@ export default function AdminDashboard() {
                             }}
                             className="cursor-pointer"
                           />
-                          {isUploadingImages && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>}
+                          {isUploadingImages && (
+                            <div className="flex items-center space-x-2 text-primary text-sm font-medium">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                              <span>Uploading...</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center space-x-4">
@@ -1271,12 +1276,16 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button onClick={handleSaveItem} className="flex-1" disabled={isUploadingImages}>
+                        <Button
+                          onClick={handleSaveItem}
+                          className={`flex-1 transition-all ${isUploadingImages ? 'opacity-70 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted' : ''}`}
+                          disabled={isUploadingImages}
+                        >
                           {isUploadingImages ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Uploading...
-                            </>
+                            <div className="flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                              <span>Please wait...</span>
+                            </div>
                           ) : (
                             <>
                               <Save className="h-4 w-4 mr-2" />
