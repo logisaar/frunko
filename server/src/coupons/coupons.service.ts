@@ -4,11 +4,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCouponDto, ValidateCouponDto } from './dto/coupon.dto';
+import { CreateCouponDto, ValidateCouponDto, UpdateCouponDto } from './dto/coupon.dto';
 
 @Injectable()
 export class CouponsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findAll() {
     return this.prisma.couponCode.findMany({
@@ -90,6 +90,27 @@ export class CouponsService {
     const coupon = await this.prisma.couponCode.findUnique({ where: { id } });
     if (!coupon) throw new NotFoundException('Coupon not found');
     return this.prisma.couponCode.delete({ where: { id } });
+  }
+
+  async update(id: string, dto: UpdateCouponDto) {
+    const coupon = await this.prisma.couponCode.findUnique({ where: { id } });
+    if (!coupon) throw new NotFoundException('Coupon not found');
+
+    const data: any = {};
+    if (dto.code !== undefined) data.code = dto.code.toUpperCase();
+    if (dto.discountType !== undefined) data.discountType = dto.discountType;
+    if (dto.discountValue !== undefined) data.discountValue = dto.discountValue;
+    if (dto.maxDiscount !== undefined) data.maxDiscount = dto.maxDiscount;
+    if (dto.minOrderValue !== undefined) data.minOrderValue = dto.minOrderValue;
+    if (dto.usageLimit !== undefined) data.usageLimit = dto.usageLimit;
+    if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (dto.validFrom !== undefined) data.validFrom = dto.validFrom ? new Date(dto.validFrom) : null;
+    if (dto.validUntil !== undefined) data.validUntil = dto.validUntil ? new Date(dto.validUntil) : null;
+
+    return this.prisma.couponCode.update({
+      where: { id },
+      data,
+    });
   }
 
   async toggleActive(id: string) {

@@ -312,6 +312,13 @@ class ApiClient {
         });
     }
 
+    async updateCoupon(id: string, data: any) {
+        return this.request<any>(`/coupons/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
     async deleteCoupon(id: string) {
         return this.request<any>(`/coupons/${id}`, {
             method: 'DELETE',

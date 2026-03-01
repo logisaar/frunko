@@ -11,11 +11,11 @@ import {
 import { CouponsService } from './coupons.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
-import { CreateCouponDto, ValidateCouponDto } from './dto/coupon.dto';
+import { CreateCouponDto, ValidateCouponDto, UpdateCouponDto } from './dto/coupon.dto';
 
 @Controller('coupons')
 export class CouponsController {
-  constructor(private readonly couponsService: CouponsService) {}
+  constructor(private readonly couponsService: CouponsService) { }
 
   @Post('validate')
   @UseGuards(JwtAuthGuard)
@@ -39,6 +39,12 @@ export class CouponsController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   async delete(@Param('id') id: string) {
     return this.couponsService.delete(id);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async update(@Param('id') id: string, @Body() dto: UpdateCouponDto) {
+    return this.couponsService.update(id, dto);
   }
 
   @Put(':id/toggle-active')

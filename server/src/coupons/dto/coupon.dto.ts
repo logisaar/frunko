@@ -48,6 +48,18 @@ export class CreateCouponDto {
   validUntil?: string;
 }
 
+export class UpdateCouponDto {
+  @IsOptional() @IsString() code?: string;
+  @IsOptional() @IsEnum(DiscountType) discountType?: DiscountType;
+  @IsOptional() @IsNumber() @Min(0.01) discountValue?: number;
+  @IsOptional() @IsNumber() maxDiscount?: number;
+  @IsOptional() @IsNumber() minOrderValue?: number;
+  @IsOptional() @IsNumber() usageLimit?: number;
+  @IsOptional() @IsBoolean() isActive?: boolean;
+  @IsOptional() @IsString() validFrom?: string;
+  @IsOptional() @IsString() validUntil?: string;
+}
+
 export class ValidateCouponDto {
   @IsString()
   code!: string;
