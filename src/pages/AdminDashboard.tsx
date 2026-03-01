@@ -172,9 +172,9 @@ export default function AdminDashboard() {
 
       setItems(itemsData || []);
 
-      // Filter out 'pending' orders (e.g., abandoned Paytm checkouts) and sort by newest first
+      // Includes all orders except completely abandoned checkout sessions (pending status with no txn attempt)
       const validOrders = (ordersData || [])
-        .filter((order: any) => order.status !== 'pending')
+        .filter((order: any) => order.status !== 'pending' || order.payment_status)
         .sort((a: any, b: any) => {
           const dateA = new Date(a.created_at || a.createdAt || 0).getTime();
           const dateB = new Date(b.created_at || b.createdAt || 0).getTime();
@@ -199,7 +199,11 @@ export default function AdminDashboard() {
             const orderDate = new Date(dateVal).toISOString().split('T')[0];
             return orderDate === dateStr;
           });
-          const revenue = dayOrders.reduce((sum: number, o: any) => sum + Number(o.totalAmount || o.total_amount || 0), 0);
+
+          // Only count successfully paid/delivered orders for revenue
+          const revenue = dayOrders
+            .filter((o: any) => o.status !== 'cancelled' && (o.payment_status === 'paid' || o.paymentStatus === 'paid'))
+            .reduce((sum: number, o: any) => sum + Number(o.totalAmount || o.total_amount || 0), 0);
 
           return {
             name: new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short' }),
@@ -230,16 +234,18 @@ export default function AdminDashboard() {
       if (dashboardStats) {
         setStats(dashboardStats);
       } else {
-        // Fallback calculation
-        const totalRevenue = validOrders.reduce((sum: number, order: any) => sum + Number(order.totalAmount || order.total_amount || 0), 0);
+        // Fallback calculation - only count successful orders
+        const successfulOrders = validOrders.filter((o: any) => o.status !== 'cancelled' && (o.payment_status === 'paid' || o.paymentStatus === 'paid'));
+        const totalRevenue = successfulOrders.reduce((sum: number, order: any) => sum + Number(order.totalAmount || order.total_amount || 0), 0);
+
         const activeSubscriptionsCount = (subscriptionsData || []).filter((sub: any) => sub.status === 'active').length;
         const subscriptionRevenue = (subscriptionsData || [])
           .filter((sub: any) => sub.status === 'active')
           .reduce((sum: number, sub: any) => sum + Number(sub.plan?.price || sub.plans?.price || 0), 0);
 
         setStats({
-          totalOrders: validOrders.length,
-          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          totalOrders: validOrders.length, // show all orders count
+          totalRevenue: Math.round(totalRevenue * 100) / 100, // but only successful revenue
           totalUsers: (usersData || []).length,
           totalItems: (itemsData || []).length,
           activeSubscriptions: activeSubscriptionsCount,
