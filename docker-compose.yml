@@ -35,6 +35,11 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:3001/api/auth/google/callback}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8081}
+      PAYTM_MID: ${PAYTM_MID}
+      PAYTM_MERCHANT_KEY: ${PAYTM_MERCHANT_KEY}
+      PAYTM_WEBSITE: ${PAYTM_WEBSITE:-DEFAULT}
+      PAYTM_INDUSTRY_TYPE: ${PAYTM_INDUSTRY_TYPE:-Retail}
+      PAYTM_CHANNEL_ID: ${PAYTM_CHANNEL_ID:-WEB}
       PORT: 3001
     volumes:
       - frunko_uploads:/app/uploads
