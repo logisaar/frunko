@@ -83,7 +83,7 @@ export default function CouponManagement({ coupons, onUpdate }: { coupons: any[]
                 <Plus className="h-4 w-4 mr-2" />Add Coupon
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
               <DialogHeader><DialogTitle>{editing ? 'Edit' : 'Add'} Coupon</DialogTitle></DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                 <div className="md:col-span-2">
