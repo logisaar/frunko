@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import * as PaytmChecksum from 'paytmchecksum';
@@ -28,12 +28,14 @@ export class PaytmService {
     ) {
         const paytmOrderId = `FRUNKO_${orderId.slice(-8)}_${Date.now()}`;
 
+        const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.frunko.in');
+
         const paytmBody: Record<string, any> = {
             requestType: 'Payment',
             mid: this.mid,
             websiteName: this.website,
             orderId: paytmOrderId,
-            callbackUrl: `http://localhost:${this.config.get('PORT', '3001')}/api/paytm/callback`,
+            callbackUrl: `${backendUrl}/api/paytm/callback`,
             txnAmount: {
                 value: parseFloat(amount.toString()).toFixed(2),
                 currency: 'INR',
@@ -69,7 +71,7 @@ export class PaytmService {
 
         if (!data.body?.txnToken) {
             this.logger.error('Paytm initiate failed:', JSON.stringify(data));
-            throw new Error(data.body?.resultInfo?.resultMsg || 'Failed to initiate Paytm transaction');
+            throw new BadRequestException(data.body?.resultInfo?.resultMsg || 'Failed to initiate Paytm transaction');
         }
 
         // Save paytmOrderId on our order record
