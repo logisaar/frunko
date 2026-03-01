@@ -1690,15 +1690,15 @@ export default function AdminDashboard() {
                     <Plus className="h-4 w-4 mr-2" />
                     Add Coupon
                   </Button>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                     <DialogHeader>
                       <DialogTitle>{editingCoupon ? 'Edit Coupon' : 'Create New Coupon'}</DialogTitle>
                       <DialogDescription>
                         {editingCoupon ? 'Update coupon code details.' : 'Add a new discount coupon code.'}
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2 md:col-span-2">
                         <Label>Coupon Code</Label>
                         <Input
                           value={couponForm.code}
@@ -1762,7 +1762,7 @@ export default function AdminDashboard() {
                           onChange={(e) => setCouponForm(prev => ({ ...prev, valid_until: e.target.value }))}
                         />
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 md:col-span-2 mt-2">
                         <input
                           type="checkbox"
                           id="is-active"
@@ -1772,7 +1772,7 @@ export default function AdminDashboard() {
                         />
                         <Label htmlFor="is-active">Active</Label>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 md:col-span-2 pt-2">
                         <Button onClick={handleSaveCoupon} className="flex-1">
                           <Save className="h-4 w-4 mr-2" />
                           {editingCoupon ? 'Update' : 'Create'}
