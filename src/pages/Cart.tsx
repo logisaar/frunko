@@ -320,7 +320,8 @@ export default function Cart() {
 
     setIsCheckingOut(true);
     try {
-      const finalTotalAmount = Number(total.toFixed(2));
+      // Force round to integer to match UI, and ensure minimum of ₹1.00 for Paytm
+      const finalTotalAmount = Math.max(1, Math.round(total));
 
       // 1. Create the order
       const orderData = await api.createOrder({
@@ -782,7 +783,7 @@ export default function Cart() {
                 )}
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>To Pay</span>
-                  <span className="text-primary">₹{total.toFixed(0)}</span>
+                  <span className="text-primary">₹{Math.max(1, Math.round(total))}</span>
                 </div>
 
                 {/* Action button based on step */}
@@ -820,7 +821,7 @@ export default function Cart() {
                       </>
                     ) : (
                       <>
-                        <CreditCard className="h-5 w-5 mr-2" /> Pay ₹{total.toFixed(0)}
+                        <CreditCard className="h-5 w-5 mr-2" /> Pay ₹{Math.max(1, Math.round(total))}
                       </>
                     )}
                   </Button>
